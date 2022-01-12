@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+.bin
+pip-cnb.tgz
+pip-cnb_*
+/build
