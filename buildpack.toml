@@ -18,11 +18,6 @@ api = "0.6"
     uri = "https://files.pythonhosted.org/packages/97/75/e1d93257956f5be859b2f4ab0d9b8ee881fbb866d19010aa64dc9ff2b156/poetry-1.1.6.tar.gz"
     version = "1.1.6"
 
-  # [[metadata.dependency-constraints]]
-  #   constraint = "*"
-  #   id = "poetry"
-  #   patches = 2
-
 [[stacks]]
   id = "io.buildpacks.stacks.bionic"
 
