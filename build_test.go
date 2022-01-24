@@ -15,8 +15,8 @@ import (
 	"github.com/paketo-buildpacks/packit/v2/paketosbom"
 	"github.com/paketo-buildpacks/packit/v2/postal"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
-	"github.com/paketo-community/poetry"
-	"github.com/paketo-community/poetry/fakes"
+	"github.com/paketo-buildpacks/poetry"
+	"github.com/paketo-buildpacks/poetry/fakes"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"

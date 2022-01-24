@@ -1,4 +1,4 @@
-module github.com/paketo-community/poetry
+module github.com/paketo-buildpacks/poetry
 
 go 1.16
 

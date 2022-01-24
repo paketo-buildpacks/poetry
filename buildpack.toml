@@ -1,7 +1,7 @@
 api = "0.6"
 
 [buildpack]
-  id = "paketo-community/poetry"
+  id = "paketo-buildpacks/poetry"
   name = "Paketo Poetry Buildpack"
 
 [metadata]
