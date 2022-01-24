@@ -1,0 +1,5 @@
+{
+  "cpython":"github.com/paketo-buildpacks/cpython",
+  "pip":"github.com/paketo-buildpacks/pip",
+  "build-plan":"github.com/paketo-community/build-plan"
+}

@@ -1,0 +1,30 @@
+api = "0.6"
+
+[buildpack]
+  id = "paketo-community/poetry"
+  name = "Paketo Poetry Buildpack"
+
+[metadata]
+  include-files = ["bin/run", "bin/build", "bin/detect", "buildpack.toml"]
+  pre-package = "./scripts/build.sh"
+
+  [[metadata.dependencies]]
+    id = "poetry"
+    name = "Poetry"
+    sha256 = "e7c58a50c14aebc18e7de9df64f1dad74b194f21b8e5257251449f0feb4784fa"
+    source = "https://files.pythonhosted.org/packages/97/75/e1d93257956f5be859b2f4ab0d9b8ee881fbb866d19010aa64dc9ff2b156/poetry-1.1.6.tar.gz"
+    source_sha256 = "e7c58a50c14aebc18e7de9df64f1dad74b194f21b8e5257251449f0feb4784fa"
+    stacks = ["io.buildpacks.stacks.bionic"]
+    uri = "https://files.pythonhosted.org/packages/97/75/e1d93257956f5be859b2f4ab0d9b8ee881fbb866d19010aa64dc9ff2b156/poetry-1.1.6.tar.gz"
+    version = "1.1.6"
+
+  # [[metadata.dependency-constraints]]
+  #   constraint = "*"
+  #   id = "poetry"
+  #   patches = 2
+
+[[stacks]]
+  id = "io.buildpacks.stacks.bionic"
+
+[[stacks]]
+  id = "org.cloudfoundry.stacks.cflinuxfs3"
