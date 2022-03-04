@@ -42,15 +42,19 @@ var settings struct {
 			Online  string
 			Offline string
 		}
+		PoetryInstall struct {
+			Online string
+		}
 		BuildPlan struct {
 			Online string
 		}
 	}
 
 	Config struct {
-		CPython   string `json:"cpython"`
-		Pip       string `json:"pip"`
-		BuildPlan string `json:"build-plan"`
+		CPython       string `json:"cpython"`
+		Pip           string `json:"pip"`
+		PoetryInstall string `json:"poetry-install"`
+		BuildPlan     string `json:"build-plan"`
 	}
 }
 
@@ -107,6 +111,10 @@ func TestIntegration(t *testing.T) {
 		Execute(settings.Config.CPython)
 	Expect(err).NotTo(HaveOccurred())
 
+	settings.Buildpacks.PoetryInstall.Online, err = buildpackStore.Get.
+		Execute(settings.Config.PoetryInstall)
+	Expect(err).NotTo(HaveOccurred())
+
 	settings.Buildpacks.BuildPlan.Online, err = buildpackStore.Get.
 		Execute(settings.Config.BuildPlan)
 	Expect(err).NotTo(HaveOccurred())
@@ -115,5 +123,6 @@ func TestIntegration(t *testing.T) {
 
 	suite := spec.New("Integration", spec.Report(report.Terminal{}))
 	suite("Default", testDefault, spec.Parallel())
+	suite("Default", testPoetryWithVersion, spec.Parallel())
 	suite.Run(t)
 }
