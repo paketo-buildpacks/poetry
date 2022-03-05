@@ -10,6 +10,7 @@ import (
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
+	. "github.com/paketo-buildpacks/occam/matchers"
 )
 
 func testPoetryWithUnavailableVersion(t *testing.T, context spec.G, it spec.S) {
@@ -60,6 +61,13 @@ func testPoetryWithUnavailableVersion(t *testing.T, context spec.G, it spec.S) {
 				).
 				Execute(name, source)
 			Expect(err).To(HaveOccurred(), logs.String)
+
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`\s*The currently activated Python version \d+\.\d+\.\d+ is not supported by the project \(1\.2\.3\)\.`),
+			))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`\s*Poetry was unable to find a compatible version\. If you have one, you can explicitly use it via the "env use" command\.`),
+			))
 		})
 	})
 }
