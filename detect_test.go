@@ -1,6 +1,7 @@
 package poetry_test
 
 import (
+	"github.com/paketo-buildpacks/poetry/fakes"
 	"os"
 	"testing"
 
@@ -19,7 +20,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		detect = poetry.Detect()
+		detect = poetry.Detect(&fakes.ParsePythonVersion{})
 	})
 
 	it("returns a plan that provides poetry", func() {

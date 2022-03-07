@@ -18,7 +18,14 @@ type PyProjectToml struct {
 
 const PyProjectTomlFile = "pyproject.toml"
 
-func ParsePythonVersion(path string) (version string, err error) {
+type PyProjectParser struct {
+}
+
+func NewPyProjectParser() PyProjectParser {
+	return PyProjectParser{}
+}
+
+func (p PyProjectParser) ParsePythonVersion(path string) (version string, err error) {
 	var pyProject PyProjectToml
 	_, err = toml.DecodeFile(filepath.Join(path, PyProjectTomlFile), &pyProject)
 

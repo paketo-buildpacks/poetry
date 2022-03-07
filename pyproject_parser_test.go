@@ -15,6 +15,7 @@ func testPyProjectParser(t *testing.T, context spec.G, it spec.S) {
 		Expect = NewWithT(t).Expect
 
 		workingDir string
+		parser     poetry.PyProjectParser
 	)
 
 	const (
@@ -28,6 +29,8 @@ python = "abcd"`
 		var err error
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
+
+		parser = poetry.NewPyProjectParser()
 	})
 
 	it.After(func() {
@@ -40,7 +43,7 @@ python = "abcd"`
 				filepath.Join(workingDir, poetry.PyProjectTomlFile),
 				[]byte(version1), 0644)).To(Succeed())
 
-			version, err := poetry.ParsePythonVersion(workingDir)
+			version, err := parser.ParsePythonVersion(workingDir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal("===1.2.3"))
 		})
@@ -50,13 +53,13 @@ python = "abcd"`
 				filepath.Join(workingDir, poetry.PyProjectTomlFile),
 				[]byte(version2), 0644)).To(Succeed())
 
-			version, err := poetry.ParsePythonVersion(workingDir)
+			version, err := parser.ParsePythonVersion(workingDir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal("abcd"))
 		})
 
 		it("returns error if file does not exist", func() {
-			_, err := poetry.ParsePythonVersion("not a valid dir")
+			_, err := parser.ParsePythonVersion("not a valid dir")
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -67,7 +70,7 @@ python = "abcd"`
 				filepath.Join(workingDir, poetry.PyProjectTomlFile),
 				[]byte(""), 0644)).To(Succeed())
 
-			_, err := poetry.ParsePythonVersion(workingDir)
+			_, err := parser.ParsePythonVersion(workingDir)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies"))
 		})
