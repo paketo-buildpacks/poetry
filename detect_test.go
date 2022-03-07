@@ -1,6 +1,7 @@
 package poetry_test
 
 import (
+	"errors"
 	"github.com/paketo-buildpacks/poetry/fakes"
 	"os"
 	"testing"
@@ -16,14 +17,20 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
+		parsePythonVersion *fakes.ParsePythonVersion
+
 		detect packit.DetectFunc
 	)
 
 	it.Before(func() {
-		detect = poetry.Detect(&fakes.ParsePythonVersion{})
+		parsePythonVersion = &fakes.ParsePythonVersion{}
+
+		detect = poetry.Detect(parsePythonVersion)
 	})
 
 	it("returns a plan that provides poetry", func() {
+		parsePythonVersion.ParsePythonVersionCall.Returns.String = "1.2.3"
+
 		result, err := detect(packit.DetectContext{
 			WorkingDir: "/working-dir",
 		})
@@ -43,7 +50,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 					{
 						Name: poetry.CPython,
 						Metadata: poetry.BuildPlanMetadata{
-							Build: true,
+							Build:         true,
+							Version:       "1.2.3",
+							VersionSource: "pyproject.toml",
 						},
 					},
 				},
@@ -61,6 +70,8 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("returns a plan that requires that version of poetry", func() {
+			parsePythonVersion.ParsePythonVersionCall.Returns.String = "9.8.7"
+
 			result, err := detect(packit.DetectContext{
 				WorkingDir: "/working-dir",
 			})
@@ -80,7 +91,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 						{
 							Name: poetry.CPython,
 							Metadata: poetry.BuildPlanMetadata{
-								Build: true,
+								Build:         true,
+								Version:       "9.8.7",
+								VersionSource: "pyproject.toml",
 							},
 						},
 						{
@@ -95,4 +108,42 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			}))
 		})
 	}, spec.Sequential())
+
+	context("handles pyproject.toml parser", func() {
+		it("passes WorkingDir to the pyproject.toml parser #1", func() {
+			_, _ = detect(packit.DetectContext{
+				WorkingDir: "/hi",
+			})
+			Expect(parsePythonVersion.ParsePythonVersionCall.Receives.Path).To(Equal("/hi"))
+		})
+
+		it("passes WorkingDir to the pyproject.toml parser #2", func() {
+			_, _ = detect(packit.DetectContext{
+				WorkingDir: "/other",
+			})
+			Expect(parsePythonVersion.ParsePythonVersionCall.Receives.Path).To(Equal("/other"))
+		})
+
+		it("handles an error from the pyproject.toml parser #1", func() {
+			expectedErr := errors.New("hi")
+			parsePythonVersion.ParsePythonVersionCall.Returns.Error = expectedErr
+
+			result, err := detect(packit.DetectContext{
+				WorkingDir: "/working-dir",
+			})
+			Expect(result).To(Equal(packit.DetectResult{}))
+			Expect(err).To(Equal(expectedErr))
+		})
+
+		it("handles an error from the pyproject.toml parser #2", func() {
+			expectedErr := errors.New("other")
+			parsePythonVersion.ParsePythonVersionCall.Returns.Error = expectedErr
+
+			result, err := detect(packit.DetectContext{
+				WorkingDir: "/working-dir",
+			})
+			Expect(result).To(Equal(packit.DetectResult{}))
+			Expect(err).To(Equal(expectedErr))
+		})
+	})
 }

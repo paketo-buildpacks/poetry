@@ -21,6 +21,12 @@ type ICanNameThisAnythingIWant interface {
 
 func Detect(parser ICanNameThisAnythingIWant) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
+		pythonVersion, err := parser.ParsePythonVersion(context.WorkingDir)
+
+		if err != nil {
+			return packit.DetectResult{}, err
+		}
+
 		requirements := []packit.BuildPlanRequirement{
 			{
 				Name: Pip,
@@ -31,7 +37,9 @@ func Detect(parser ICanNameThisAnythingIWant) packit.DetectFunc {
 			{
 				Name: CPython,
 				Metadata: BuildPlanMetadata{
-					Build: true,
+					Build:         true,
+					Version:       pythonVersion,
+					VersionSource: "pyproject.toml",
 				},
 			},
 		}
