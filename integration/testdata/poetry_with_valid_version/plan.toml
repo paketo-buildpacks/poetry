@@ -1,5 +1,5 @@
 [[requires]]
-  name = "poetry-venv"
+  name = "poetry"
 
   [requires.metadata]
     launch = true

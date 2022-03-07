@@ -12,14 +12,14 @@ type BuildPlanMetadata struct {
 	Version       string `toml:"version"`
 }
 
-//go:generate faux --interface ICanNameThisAnythingIWant --output fakes/py_project_parser.go
-type ICanNameThisAnythingIWant interface {
+//go:generate faux --interface PyProjectPythonVersionParser --output fakes/pyproject_parser.go
+type PyProjectPythonVersionParser interface {
 	// ParsePythonVersion extracts `tool.poetry.dependencies.python`
 	// from pyproject.toml
 	ParsePythonVersion(path string) (string, error)
 }
 
-func Detect(parser ICanNameThisAnythingIWant) packit.DetectFunc {
+func Detect(parser PyProjectPythonVersionParser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
 		pythonVersion, err := parser.ParsePythonVersion(context.WorkingDir)
 

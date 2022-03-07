@@ -2,8 +2,6 @@ package integration_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,8 +15,7 @@ import (
 
 func testPoetryWithVersion(t *testing.T, context spec.G, it spec.S) {
 	var (
-		Expect     = NewWithT(t).Expect
-		Eventually = NewWithT(t).Eventually
+		Expect = NewWithT(t).Expect
 
 		pack   occam.Pack
 		docker occam.Docker
@@ -29,7 +26,7 @@ func testPoetryWithVersion(t *testing.T, context spec.G, it spec.S) {
 		docker = occam.NewDocker()
 	})
 
-	context("when the buildpack is run with pack build", func() {
+	context("when pyproject.toml constrains the python version", func() {
 		var (
 			image     occam.Image
 			container occam.Container
@@ -50,7 +47,7 @@ func testPoetryWithVersion(t *testing.T, context spec.G, it spec.S) {
 			Expect(os.RemoveAll(source)).To(Succeed())
 		})
 
-		it("builds with the defaults", func() {
+		it("this buildpacks provides a Version constraint to the CPython buildpack", func() {
 			var err error
 			var logs fmt.Stringer
 
@@ -63,30 +60,14 @@ func testPoetryWithVersion(t *testing.T, context spec.G, it spec.S) {
 					settings.Buildpacks.CPython.Online,
 					settings.Buildpacks.Pip.Online,
 					settings.Buildpacks.Poetry.Online,
-					settings.Buildpacks.PoetryInstall.Online,
 					settings.Buildpacks.BuildPlan.Online,
 				).
 				Execute(name, source)
 			Expect(err).ToNot(HaveOccurred(), logs.String)
 
-			container, err = docker.Container.Run.
-				WithCommand("gunicorn server:app").
-				WithEnv(map[string]string{"PORT": "8080"}).
-				WithPublish("8080").
-				Execute(image.ID)
-			Expect(err).ToNot(HaveOccurred())
-
-			Eventually(container).Should(BeAvailable())
-
-			response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort("8080")))
-			Expect(err).NotTo(HaveOccurred())
-			defer response.Body.Close()
-
-			Expect(response.StatusCode).To(Equal(http.StatusOK))
-
-			content, err := ioutil.ReadAll(response.Body)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(string(content)).To(ContainSubstring("Hello, World!"))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`\s+Selected CPython version \(using pyproject.toml\): 3\.6\.\d+`),
+			))
 		})
 	})
 }
