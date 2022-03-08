@@ -73,9 +73,10 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			parsePythonVersion.ParsePythonVersionCall.Returns.String = "9.8.7"
 
 			result, err := detect(packit.DetectContext{
-				WorkingDir: "/working-dir",
+				WorkingDir: "/other-dir",
 			})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(parsePythonVersion.ParsePythonVersionCall.Receives.Path).To(Equal("/other-dir"))
 			Expect(result).To(Equal(packit.DetectResult{
 				Plan: packit.BuildPlan{
 					Provides: []packit.BuildPlanProvision{
@@ -109,34 +110,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		})
 	}, spec.Sequential())
 
-	context("handles pyproject.toml parser", func() {
-		it("passes WorkingDir to the pyproject.toml parser #1", func() {
-			_, _ = detect(packit.DetectContext{
-				WorkingDir: "/hi",
-			})
-			Expect(parsePythonVersion.ParsePythonVersionCall.Receives.Path).To(Equal("/hi"))
-		})
-
-		it("passes WorkingDir to the pyproject.toml parser #2", func() {
-			_, _ = detect(packit.DetectContext{
-				WorkingDir: "/other",
-			})
-			Expect(parsePythonVersion.ParsePythonVersionCall.Receives.Path).To(Equal("/other"))
-		})
-
-		it("handles an error from the pyproject.toml parser #1", func() {
+	context("error handling", func() {
+		it("handles an error from the pyproject.toml parser", func() {
 			expectedErr := errors.New("hi")
-			parsePythonVersion.ParsePythonVersionCall.Returns.Error = expectedErr
-
-			result, err := detect(packit.DetectContext{
-				WorkingDir: "/working-dir",
-			})
-			Expect(result).To(Equal(packit.DetectResult{}))
-			Expect(err).To(Equal(expectedErr))
-		})
-
-		it("handles an error from the pyproject.toml parser #2", func() {
-			expectedErr := errors.New("other")
 			parsePythonVersion.ParsePythonVersionCall.Returns.Error = expectedErr
 
 			result, err := detect(packit.DetectContext{

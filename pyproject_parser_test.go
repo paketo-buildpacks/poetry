@@ -19,10 +19,8 @@ func testPyProjectParser(t *testing.T, context spec.G, it spec.S) {
 	)
 
 	const (
-		version1 = `[tool.poetry.dependencies]
+		version = `[tool.poetry.dependencies]
 python = "===1.2.3"`
-		version2 = `[tool.poetry.dependencies]
-python = "abcd"`
 	)
 
 	it.Before(func() {
@@ -38,41 +36,32 @@ python = "abcd"`
 	})
 
 	context("Calling ParseVersion", func() {
-		it("parses version1", func() {
+		it("parses version", func() {
 			Expect(ioutil.WriteFile(
 				filepath.Join(workingDir, poetry.PyProjectTomlFile),
-				[]byte(version1), 0644)).To(Succeed())
+				[]byte(version), 0644)).To(Succeed())
 
 			version, err := parser.ParsePythonVersion(workingDir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal("===1.2.3"))
 		})
 
-		it("parses version2", func() {
-			Expect(ioutil.WriteFile(
-				filepath.Join(workingDir, poetry.PyProjectTomlFile),
-				[]byte(version2), 0644)).To(Succeed())
+		context("error handling", func() {
+			it("returns error if file does not exist", func() {
+				_, err := parser.ParsePythonVersion("not a valid dir")
+				Expect(err).To(HaveOccurred())
+			})
 
-			version, err := parser.ParsePythonVersion(workingDir)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(version).To(Equal("abcd"))
-		})
+			// the python dependency is mandatory
+			// https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies
+			it("returns error if file does not contain 'tool.poetry.dependencies.python'", func() {
+				Expect(ioutil.WriteFile(
+					filepath.Join(workingDir, poetry.PyProjectTomlFile),
+					[]byte(""), 0644)).To(Succeed())
 
-		it("returns error if file does not exist", func() {
-			_, err := parser.ParsePythonVersion("not a valid dir")
-			Expect(err).To(HaveOccurred())
-		})
-
-		// the python dependency is mandatory
-		// https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies
-		it("returns error if file does not contain 'tool.poetry.dependencies.python'", func() {
-			Expect(ioutil.WriteFile(
-				filepath.Join(workingDir, poetry.PyProjectTomlFile),
-				[]byte(""), 0644)).To(Succeed())
-
-			_, err := parser.ParsePythonVersion(workingDir)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies"))
+				_, err := parser.ParsePythonVersion(workingDir)
+				Expect(err).To(MatchError("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies"))
+			})
 		})
 	})
 }
