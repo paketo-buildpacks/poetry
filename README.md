@@ -78,3 +78,10 @@ To run the unit and integration tests for this buildpack:
 ```
 $ ./scripts/unit.sh && ./scripts/integration.sh
 ```
+
+## Known issues and limitations
+
+* This buildpack does not work in an offline/air-gapped environement; it
+  requires internet access to install `poetry`. The impact of this limitation
+  is mitigated by the fact that `poetry` itself does not support vendoring of
+  dependencies, and so cannot function in an offline/air-gapped environment.
