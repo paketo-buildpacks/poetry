@@ -2,7 +2,7 @@ package fakes
 
 import "sync"
 
-type ParsePythonVersion struct {
+type PyProjectPythonVersionParser struct {
 	ParsePythonVersionCall struct {
 		mutex     sync.Mutex
 		CallCount int
@@ -17,7 +17,7 @@ type ParsePythonVersion struct {
 	}
 }
 
-func (f *ParsePythonVersion) ParsePythonVersion(param1 string) (string, error) {
+func (f *PyProjectPythonVersionParser) ParsePythonVersion(param1 string) (string, error) {
 	f.ParsePythonVersionCall.mutex.Lock()
 	defer f.ParsePythonVersionCall.mutex.Unlock()
 	f.ParsePythonVersionCall.CallCount++

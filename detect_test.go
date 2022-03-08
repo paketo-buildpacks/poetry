@@ -17,13 +17,13 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		parsePythonVersion *fakes.ParsePythonVersion
+		parsePythonVersion *fakes.PyProjectPythonVersionParser
 
 		detect packit.DetectFunc
 	)
 
 	it.Before(func() {
-		parsePythonVersion = &fakes.ParsePythonVersion{}
+		parsePythonVersion = &fakes.PyProjectPythonVersionParser{}
 
 		detect = poetry.Detect(parsePythonVersion)
 	})
