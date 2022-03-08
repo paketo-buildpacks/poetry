@@ -72,7 +72,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
 				"  Resolving Poetry version",
 				"    Candidate version sources (in priority order):",
-				"      <unknown> -> \"\"",
+				`      <unknown> -> ""`,
 			))
 			Expect(logs).To(ContainLines(
 				MatchRegexp(`    Selected Poetry version \(using <unknown>\): \d+\.\d+\.\d+`),
@@ -85,6 +85,17 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			Expect(logs).To(ContainLines(
 				"  Configuring environment",
 				MatchRegexp(fmt.Sprintf(`    PYTHONPATH -> "\/layers\/%s\/poetry\/lib\/python\d+\.\d+\/site-packages:\$PYTHONPATH"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"))),
+			))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`Paketo CPython Buildpack \d+\.\d+\.\d+`),
+				"  Resolving CPython version",
+				"    Candidate version sources (in priority order):",
+				`      pyproject.toml -> "3.8.*"`,
+				`                     -> ""`,
+				`      <unknown>      -> ""`,
+			))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`\s*Python version \(using pyproject.toml\): 3\.8\.\d+`),
 			))
 
 			container, err = docker.Container.Run.

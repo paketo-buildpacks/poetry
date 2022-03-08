@@ -13,5 +13,6 @@ func TestUnit(t *testing.T) {
 	suite("Detect", testDetect)
 	suite("InstallProcess", testPoetryInstallProcess)
 	suite("SiteProcess", testSiteProcess)
+	suite("PyProjectParse", testPyProjectParser)
 	suite.Run(t)
 }

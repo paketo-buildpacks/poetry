@@ -19,9 +19,10 @@ func main() {
 	installProcess := poetry.NewPoetryInstallProcess(pexec.NewExecutable("pip"))
 	siteProcess := poetry.NewSiteProcess(pexec.NewExecutable("python"))
 	logs := scribe.NewEmitter(os.Stdout)
+	pyProjectParser := poetry.NewPyProjectParser()
 
 	packit.Run(
-		poetry.Detect(),
+		poetry.Detect(pyProjectParser),
 		poetry.Build(entryResolver, dependencyManager, installProcess, siteProcess, chronos.DefaultClock, logs),
 	)
 }

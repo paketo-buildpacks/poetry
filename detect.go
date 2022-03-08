@@ -12,8 +12,21 @@ type BuildPlanMetadata struct {
 	Version       string `toml:"version"`
 }
 
-func Detect() packit.DetectFunc {
+//go:generate faux --interface PyProjectPythonVersionParser --output fakes/pyproject_parser.go
+type PyProjectPythonVersionParser interface {
+	// ParsePythonVersion extracts `tool.poetry.dependencies.python`
+	// from pyproject.toml
+	ParsePythonVersion(path string) (string, error)
+}
+
+func Detect(parser PyProjectPythonVersionParser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
+		pythonVersion, err := parser.ParsePythonVersion(context.WorkingDir)
+
+		if err != nil {
+			return packit.DetectResult{}, err
+		}
+
 		requirements := []packit.BuildPlanRequirement{
 			{
 				Name: Pip,
@@ -24,7 +37,9 @@ func Detect() packit.DetectFunc {
 			{
 				Name: CPython,
 				Metadata: BuildPlanMetadata{
-					Build: true,
+					Build:         true,
+					Version:       pythonVersion,
+					VersionSource: "pyproject.toml",
 				},
 			},
 		}
