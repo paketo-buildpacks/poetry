@@ -14,13 +14,27 @@ api = "0.6"
 
   [[metadata.dependencies]]
     id = "poetry"
+    licenses = ["MIT", "MIT-0"]
     name = "Poetry"
-    sha256 = "e7c58a50c14aebc18e7de9df64f1dad74b194f21b8e5257251449f0feb4784fa"
-    source = "https://files.pythonhosted.org/packages/97/75/e1d93257956f5be859b2f4ab0d9b8ee881fbb866d19010aa64dc9ff2b156/poetry-1.1.6.tar.gz"
-    source_sha256 = "e7c58a50c14aebc18e7de9df64f1dad74b194f21b8e5257251449f0feb4784fa"
+    purl = "pkg:generic/poetry@1.1.12?checksum=5c66e2357fe37b552462a88b7d31bfa2ed8e84172208becd666933c776252567&download_url=https://files.pythonhosted.org/packages/2e/90/0905a0ad5bb1a9eb8a820337e7c629cde76060fc1dc934e7b8ed450241b8/poetry-1.1.12.tar.gz"
+    sha256 = "0101090aec487d41219ea462ce0862586008b3b461aa473912c977b489d3fbb5"
+    source = "https://files.pythonhosted.org/packages/2e/90/0905a0ad5bb1a9eb8a820337e7c629cde76060fc1dc934e7b8ed450241b8/poetry-1.1.12.tar.gz"
+    source_sha256 = "5c66e2357fe37b552462a88b7d31bfa2ed8e84172208becd666933c776252567"
     stacks = ["io.buildpacks.stacks.bionic"]
-    uri = "https://files.pythonhosted.org/packages/97/75/e1d93257956f5be859b2f4ab0d9b8ee881fbb866d19010aa64dc9ff2b156/poetry-1.1.6.tar.gz"
-    version = "1.1.6"
+    uri = "https://deps.paketo.io/poetry/poetry_1.1.12_linux_noarch_bionic_0101090a.tgz"
+    version = "1.1.12"
+
+  [[metadata.dependencies]]
+    id = "poetry"
+    licenses = ["MIT", "MIT-0"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@1.1.13?checksum=b905ed610085f568aa61574e0e09260c02bff9eae12ff672af39e9f399357ac4&download_url=https://files.pythonhosted.org/packages/bb/54/549ea28f2fae6cea82d566223015234a03d6a88177f12b2104357517be34/poetry-1.1.13.tar.gz"
+    sha256 = "dad602cae4cab1114ed03a186715aeace5fbae3f6b824a0b46759b9600cf49d3"
+    source = "https://files.pythonhosted.org/packages/bb/54/549ea28f2fae6cea82d566223015234a03d6a88177f12b2104357517be34/poetry-1.1.13.tar.gz"
+    source_sha256 = "b905ed610085f568aa61574e0e09260c02bff9eae12ff672af39e9f399357ac4"
+    stacks = ["io.buildpacks.stacks.bionic"]
+    uri = "https://deps.paketo.io/poetry/poetry_1.1.13_linux_noarch_bionic_dad602ca.tgz"
+    version = "1.1.13"
 
   [[metadata.dependency-constraints]]
     constraint = "1.1.*"
