@@ -7,7 +7,7 @@ type PyProjectPythonVersionParser struct {
 		mutex     sync.Mutex
 		CallCount int
 		Receives  struct {
-			Path string
+			String string
 		}
 		Returns struct {
 			String string
@@ -21,7 +21,7 @@ func (f *PyProjectPythonVersionParser) ParsePythonVersion(param1 string) (string
 	f.ParsePythonVersionCall.mutex.Lock()
 	defer f.ParsePythonVersionCall.mutex.Unlock()
 	f.ParsePythonVersionCall.CallCount++
-	f.ParsePythonVersionCall.Receives.Path = param1
+	f.ParsePythonVersionCall.Receives.String = param1
 	if f.ParsePythonVersionCall.Stub != nil {
 		return f.ParsePythonVersionCall.Stub(param1)
 	}

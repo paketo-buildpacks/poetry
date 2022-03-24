@@ -1,9 +1,7 @@
 package poetry
 
 import (
-	"errors"
 	"github.com/BurntSushi/toml"
-	"path/filepath"
 )
 
 type PyProjectToml struct {
@@ -16,8 +14,6 @@ type PyProjectToml struct {
 	}
 }
 
-const PyProjectTomlFile = "pyproject.toml"
-
 type PyProjectParser struct {
 }
 
@@ -25,12 +21,13 @@ func NewPyProjectParser() PyProjectParser {
 	return PyProjectParser{}
 }
 
-func (p PyProjectParser) ParsePythonVersion(path string) (version string, err error) {
+func (p PyProjectParser) ParsePythonVersion(pyProjectToml string) (string, error) {
 	var pyProject PyProjectToml
-	_, err = toml.DecodeFile(filepath.Join(path, PyProjectTomlFile), &pyProject)
 
-	if pyProject.Tool.Poetry.Dependencies.Python == "" {
-		return "", errors.New("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies")
+	_, err := toml.DecodeFile(pyProjectToml, &pyProject)
+	if err != nil {
+		return "", err
 	}
-	return pyProject.Tool.Poetry.Dependencies.Python, err
+
+	return pyProject.Tool.Poetry.Dependencies.Python, nil
 }

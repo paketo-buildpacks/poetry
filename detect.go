@@ -2,8 +2,10 @@ package poetry
 
 import (
 	"os"
+	"path/filepath"
 
-	packit "github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/fs"
 )
 
 type BuildPlanMetadata struct {
@@ -16,15 +18,28 @@ type BuildPlanMetadata struct {
 type PyProjectPythonVersionParser interface {
 	// ParsePythonVersion extracts `tool.poetry.dependencies.python`
 	// from pyproject.toml
-	ParsePythonVersion(path string) (string, error)
+	ParsePythonVersion(string) (string, error)
 }
+
+const PyProjectTomlFile = "pyproject.toml"
 
 func Detect(parser PyProjectPythonVersionParser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
-		pythonVersion, err := parser.ParsePythonVersion(context.WorkingDir)
+		pyProjectToml := filepath.Join(context.WorkingDir, PyProjectTomlFile)
 
+		if exists, err := fs.Exists(pyProjectToml); err != nil {
+			return packit.DetectResult{}, err
+		} else if !exists {
+			return packit.DetectResult{}, packit.Fail.WithMessage("%s is not present", PyProjectTomlFile)
+		}
+
+		pythonVersion, err := parser.ParsePythonVersion(pyProjectToml)
 		if err != nil {
 			return packit.DetectResult{}, err
+		}
+
+		if pythonVersion == "" {
+			return packit.DetectResult{}, packit.Fail.WithMessage("%s must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies", PyProjectTomlFile)
 		}
 
 		requirements := []packit.BuildPlanRequirement{
@@ -39,7 +54,7 @@ func Detect(parser PyProjectPythonVersionParser) packit.DetectFunc {
 				Metadata: BuildPlanMetadata{
 					Build:         true,
 					Version:       pythonVersion,
-					VersionSource: "pyproject.toml",
+					VersionSource: PyProjectTomlFile,
 				},
 			},
 		}
