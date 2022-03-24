@@ -11,4 +11,3 @@ const (
 var Priorities = []interface{}{
 	"BP_PIP_VERSION",
 }
-

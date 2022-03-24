@@ -1,21 +1,24 @@
 package poetry_test
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/paketo-buildpacks/poetry"
-	"github.com/sclevine/spec"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	. "github.com/onsi/gomega"
+	"github.com/paketo-buildpacks/poetry"
+	"github.com/sclevine/spec"
 )
 
 func testPyProjectParser(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		workingDir string
-		parser     poetry.PyProjectParser
+		workingDir    string
+		pyProjectToml string
+
+		parser poetry.PyProjectParser
 	)
 
 	const (
@@ -28,6 +31,8 @@ python = "===1.2.3"`
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
+		pyProjectToml = filepath.Join(workingDir, poetry.PyProjectTomlFile)
+
 		parser = poetry.NewPyProjectParser()
 	})
 
@@ -35,32 +40,31 @@ python = "===1.2.3"`
 		Expect(os.RemoveAll(workingDir)).To(Succeed())
 	})
 
-	context("Calling ParseVersion", func() {
+	context("Calling ParsePythonVersion", func() {
 		it("parses version", func() {
 			Expect(ioutil.WriteFile(
-				filepath.Join(workingDir, poetry.PyProjectTomlFile),
+				pyProjectToml,
 				[]byte(version), 0644)).To(Succeed())
 
-			version, err := parser.ParsePythonVersion(workingDir)
+			version, err := parser.ParsePythonVersion(pyProjectToml)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal("===1.2.3"))
 		})
 
+		it("returns empty string if file does not contain 'tool.poetry.dependencies.python'", func() {
+			Expect(ioutil.WriteFile(
+				pyProjectToml,
+				[]byte(""), 0644)).To(Succeed())
+
+			version, err := parser.ParsePythonVersion(pyProjectToml)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(version).To(Equal(""))
+		})
+
 		context("error handling", func() {
-			it("returns error if file does not exist", func() {
-				_, err := parser.ParsePythonVersion("not a valid dir")
+			it("fails if file does not exist", func() {
+				_, err := parser.ParsePythonVersion("not-a-valid-dir")
 				Expect(err).To(HaveOccurred())
-			})
-
-			// the python dependency is mandatory
-			// https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies
-			it("returns error if file does not contain 'tool.poetry.dependencies.python'", func() {
-				Expect(ioutil.WriteFile(
-					filepath.Join(workingDir, poetry.PyProjectTomlFile),
-					[]byte(""), 0644)).To(Succeed())
-
-				_, err := parser.ParsePythonVersion(workingDir)
-				Expect(err).To(MatchError("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies"))
 			})
 		})
 	})
