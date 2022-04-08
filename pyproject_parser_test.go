@@ -1,7 +1,6 @@
 package poetry_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +27,7 @@ python = "===1.2.3"`
 
 	it.Before(func() {
 		var err error
-		workingDir, err = ioutil.TempDir("", "working-dir")
+		workingDir, err = os.MkdirTemp("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
 		pyProjectToml = filepath.Join(workingDir, poetry.PyProjectTomlFile)
@@ -42,9 +41,7 @@ python = "===1.2.3"`
 
 	context("Calling ParsePythonVersion", func() {
 		it("parses version", func() {
-			Expect(ioutil.WriteFile(
-				pyProjectToml,
-				[]byte(version), 0644)).To(Succeed())
+			Expect(os.WriteFile(pyProjectToml, []byte(version), 0644)).To(Succeed())
 
 			version, err := parser.ParsePythonVersion(pyProjectToml)
 			Expect(err).NotTo(HaveOccurred())
@@ -52,9 +49,7 @@ python = "===1.2.3"`
 		})
 
 		it("returns empty string if file does not contain 'tool.poetry.dependencies.python'", func() {
-			Expect(ioutil.WriteFile(
-				pyProjectToml,
-				[]byte(""), 0644)).To(Succeed())
+			Expect(os.WriteFile(pyProjectToml, []byte(""), 0644)).To(Succeed())
 
 			version, err := parser.ParsePythonVersion(pyProjectToml)
 			Expect(err).NotTo(HaveOccurred())
