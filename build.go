@@ -2,7 +2,7 @@ package poetry
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -105,7 +105,7 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 			// Install the poetry source to a temporary dir, since we only need access to
 			// it as an intermediate step when installing poetry.
 			// It doesn't need to go into a layer, since we won't need it in future builds.
-			poetrySrcDir, err := ioutil.TempDir("", "poetry-source")
+			poetrySrcDir, err := os.MkdirTemp("", "poetry-source")
 			if err != nil {
 				return fmt.Errorf("failed to create temp poetry-source dir: %w", err)
 			}
