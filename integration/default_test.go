@@ -108,5 +108,95 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				return cLogs.String()
 			}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
 		})
+
+		context("validating SBOM", func() {
+			var (
+				container2 occam.Container
+				sbomDir    string
+			)
+
+			it.Before(func() {
+				var err error
+				sbomDir, err = os.MkdirTemp("", "sbom")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(os.Chmod(sbomDir, os.ModePerm)).To(Succeed())
+			})
+
+			it.After(func() {
+				Expect(docker.Container.Remove.Execute(container2.ID)).To(Succeed())
+				Expect(os.RemoveAll(sbomDir)).To(Succeed())
+			})
+
+			it("writes SBOM files to the layer and label metadata", func() {
+				var err error
+				var logs fmt.Stringer
+
+				source, err = occam.Source(filepath.Join("testdata", "default_app"))
+				Expect(err).NotTo(HaveOccurred())
+
+				image, logs, err = pack.WithNoColor().Build.
+					WithPullPolicy("never").
+					WithBuildpacks(
+						settings.Buildpacks.CPython.Online,
+						settings.Buildpacks.Pip.Online,
+						settings.Buildpacks.Poetry.Online,
+						settings.Buildpacks.BuildPlan.Online,
+					).
+					WithEnv(map[string]string{
+						"BP_LOG_LEVEL": "DEBUG",
+					}).
+					WithSBOMOutputDir(sbomDir).
+					Execute(name, source)
+				Expect(err).ToNot(HaveOccurred(), logs.String)
+
+				container, err = docker.Container.Run.
+					WithCommand("poetry --version").
+					Execute(image.ID)
+				Expect(err).ToNot(HaveOccurred())
+
+				Eventually(func() string {
+					cLogs, err := docker.Container.Logs.Execute(container.ID)
+					Expect(err).NotTo(HaveOccurred())
+					return cLogs.String()
+				}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
+
+				Expect(logs).To(ContainLines(
+					fmt.Sprintf("  Generating SBOM for /layers/%s/poetry", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
+					MatchRegexp(`      Completed in \d+(\.?\d+)*`),
+				))
+				Expect(logs).To(ContainLines(
+					"  Writing SBOM in the following format(s):",
+					"    application/vnd.cyclonedx+json",
+					"    application/spdx+json",
+					"    application/vnd.syft+json",
+				))
+
+				// check that legacy SBOM is included via metadata
+				container2, err = docker.Container.Run.
+					WithCommand("cat /layers/config/metadata.toml").
+					Execute(image.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(func() string {
+					cLogs, err := docker.Container.Logs.Execute(container2.ID)
+					Expect(err).NotTo(HaveOccurred())
+					return cLogs.String()
+				}).Should(And(
+					ContainSubstring("[[bom]]"),
+					ContainSubstring(`name = "Poetry`),
+					ContainSubstring("[bom.metadata]"),
+				))
+
+				// check that all required SBOM files are present
+				Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.cdx.json")).To(BeARegularFile())
+				Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.spdx.json")).To(BeARegularFile())
+				Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.syft.json")).To(BeARegularFile())
+
+				// check an SBOM file to make sure it has an entry for cpython
+				contents, err := os.ReadFile(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.cdx.json"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(contents)).To(ContainSubstring(`"name": "Poetry"`))
+			})
+		})
 	})
 }

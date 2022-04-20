@@ -10,6 +10,7 @@ import (
 	packit "github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
 	"github.com/paketo-buildpacks/packit/v2/postal"
+	"github.com/paketo-buildpacks/packit/v2/sbom"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
@@ -17,6 +18,7 @@ import (
 //go:generate faux --interface DependencyManager --output fakes/dependency_manager.go
 //go:generate faux --interface InstallProcess --output fakes/install_process.go
 //go:generate faux --interface SitePackageProcess --output fakes/site_package_process.go
+//go:generate faux --interface SBOMGenerator --output fakes/sbom_generator.go
 
 type EntryResolver interface {
 	Resolve(name string, entries []packit.BuildpackPlanEntry, priorites []interface{}) (packit.BuildpackPlanEntry, []packit.BuildpackPlanEntry)
@@ -39,13 +41,25 @@ type SitePackageProcess interface {
 	Execute(targetLayerPath string) (string, error)
 }
 
-func Build(entryResolver EntryResolver, dependencyManager DependencyManager, installProcess InstallProcess, siteProcess SitePackageProcess, clock chronos.Clock, logs scribe.Emitter) packit.BuildFunc {
-	return func(context packit.BuildContext) (packit.BuildResult, error) {
-		logs.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
+type SBOMGenerator interface {
+	GenerateFromDependency(dependency postal.Dependency, dir string) (sbom.SBOM, error)
+}
 
-		logs.Process("Resolving Poetry version")
+func Build(
+	entryResolver EntryResolver,
+	dependencyManager DependencyManager,
+	installProcess InstallProcess,
+	siteProcess SitePackageProcess,
+	sbomGenerator SBOMGenerator,
+	clock chronos.Clock,
+	logger scribe.Emitter,
+) packit.BuildFunc {
+	return func(context packit.BuildContext) (packit.BuildResult, error) {
+		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
+
+		logger.Process("Resolving Poetry version")
 		entry, entries := entryResolver.Resolve(PoetryDependency, context.Plan.Entries, Priorities)
-		logs.Candidates(entries)
+		logger.Candidates(entries)
 
 		version, ok := entry.Metadata["version"].(string)
 		if !ok {
@@ -57,8 +71,8 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 			return packit.BuildResult{}, err
 		}
 
-		logs.SelectedDependency(entry, dependency, clock.Now())
-		bom := dependencyManager.GenerateBillOfMaterials(dependency)
+		logger.SelectedDependency(entry, dependency, clock.Now())
+		legacySBOM := dependencyManager.GenerateBillOfMaterials(dependency)
 
 		poetryLayer, err := context.Layers.Get(PoetryLayerName)
 		if err != nil {
@@ -70,17 +84,17 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 		var buildMetadata = packit.BuildMetadata{}
 		var launchMetadata = packit.LaunchMetadata{}
 		if build {
-			buildMetadata = packit.BuildMetadata{BOM: bom}
+			buildMetadata = packit.BuildMetadata{BOM: legacySBOM}
 		}
 
 		if launch {
-			launchMetadata = packit.LaunchMetadata{BOM: bom}
+			launchMetadata = packit.LaunchMetadata{BOM: legacySBOM}
 		}
 
 		cachedSHA, ok := poetryLayer.Metadata[DependencySHAKey].(string)
 		if ok && cachedSHA == dependency.SHA256 {
-			logs.Process("Reusing cached layer %s", poetryLayer.Path)
-			logs.Break()
+			logger.Process("Reusing cached layer %s", poetryLayer.Path)
+			logger.Break()
 
 			poetryLayer.Launch, poetryLayer.Build, poetryLayer.Cache = launch, build, build
 
@@ -91,7 +105,7 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 			}, nil
 		}
 
-		logs.Process("Executing build process")
+		logger.Process("Executing build process")
 
 		poetryLayer, err = poetryLayer.Reset()
 		if err != nil {
@@ -100,7 +114,7 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 
 		poetryLayer.Launch, poetryLayer.Build, poetryLayer.Cache = launch, build, build
 
-		logs.Subprocess("Installing Poetry %s", dependency.Version)
+		logger.Subprocess("Installing Poetry %s", dependency.Version)
 		duration, err := clock.Measure(func() error {
 			// Install the poetry source to a temporary dir, since we only need access to
 			// it as an intermediate step when installing poetry.
@@ -117,7 +131,7 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 
 			err = installProcess.Execute(poetrySrcDir, poetryLayer.Path)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			// Look up the site packages path and prepend it onto $PYTHONPATH
@@ -138,12 +152,31 @@ func Build(entryResolver EntryResolver, dependencyManager DependencyManager, ins
 			return packit.BuildResult{}, err
 		}
 
-		logs.Action("Completed in %s", duration.Round(time.Millisecond))
-		logs.Break()
+		logger.Action("Completed in %s", duration.Round(time.Millisecond))
+		logger.Break()
 
-		logs.Process("Configuring environment")
-		logs.Subprocess("%s", scribe.NewFormattedMapFromEnvironment(poetryLayer.SharedEnv))
-		logs.Break()
+		logger.GeneratingSBOM(poetryLayer.Path)
+		var sbomContent sbom.SBOM
+		duration, err = clock.Measure(func() error {
+			sbomContent, err = sbomGenerator.GenerateFromDependency(dependency, poetryLayer.Path)
+			return err
+		})
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		logger.Action("Completed in %s", duration.Round(time.Millisecond))
+		logger.Break()
+
+		logger.FormattingSBOM(context.BuildpackInfo.SBOMFormats...)
+		poetryLayer.SBOM, err = sbomContent.InFormats(context.BuildpackInfo.SBOMFormats...)
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		logger.Process("Configuring environment")
+		logger.Subprocess("%s", scribe.NewFormattedMapFromEnvironment(poetryLayer.SharedEnv))
+		logger.Break()
 
 		poetryLayer.Metadata = map[string]interface{}{
 			DependencySHAKey: dependency.SHA256,

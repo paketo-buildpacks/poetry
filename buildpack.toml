@@ -1,8 +1,9 @@
-api = "0.6"
+api = "0.7"
 
 [buildpack]
   id = "paketo-buildpacks/poetry"
   name = "Paketo Poetry Buildpack"
+  sbom-formats = ["application/vnd.cyclonedx+json", "application/spdx+json", "application/vnd.syft+json"]
 
   [[buildpack.licenses]]
     type = "Apache-2.0"
@@ -23,6 +24,7 @@ api = "0.6"
     stacks = ["io.buildpacks.stacks.bionic"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.12_linux_noarch_bionic_0101090a.tgz"
     version = "1.1.12"
+    cpe = "cpe:2.3:a:python-poetry:poetry:*:*:*:*:*:*:*:*"
 
   [[metadata.dependencies]]
     id = "poetry"
@@ -35,6 +37,7 @@ api = "0.6"
     stacks = ["io.buildpacks.stacks.bionic"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.13_linux_noarch_bionic_dad602ca.tgz"
     version = "1.1.13"
+    cpe = "cpe:2.3:a:python-poetry:poetry:*:*:*:*:*:*:*:*"
 
   [[metadata.dependency-constraints]]
     constraint = "1.1.*"

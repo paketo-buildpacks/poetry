@@ -14,6 +14,7 @@ import (
 	//nolint Ignore SA1019, informed usage of deprecated package
 	"github.com/paketo-buildpacks/packit/v2/paketosbom"
 	"github.com/paketo-buildpacks/packit/v2/postal"
+	"github.com/paketo-buildpacks/packit/v2/sbom"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
 	"github.com/paketo-buildpacks/poetry"
 	"github.com/paketo-buildpacks/poetry/fakes"
@@ -26,16 +27,20 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		layersDir         string
-		cnbDir            string
-		timestamp         time.Time
+		layersDir string
+		cnbDir    string
+		timestamp time.Time
+
 		entryResolver     *fakes.EntryResolver
 		dependencyManager *fakes.DependencyManager
 		installProcess    *fakes.InstallProcess
 		siteProcess       *fakes.SitePackageProcess
-		buffer            *bytes.Buffer
+		sbomGenerator     *fakes.SBOMGenerator
 
-		build packit.BuildFunc
+		buffer *bytes.Buffer
+
+		build        packit.BuildFunc
+		buildContext packit.BuildContext
 	)
 
 	it.Before(func() {
@@ -56,6 +61,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			Name: "poetry",
 		}
 
+		// Legacy SBOM
 		dependencyManager = &fakes.DependencyManager{}
 		dependencyManager.ResolveCall.Returns.Dependency = postal.Dependency{
 			ID:      "poetry",
@@ -80,6 +86,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			},
 		}
 
+		// Syft SBOM
+		sbomGenerator = &fakes.SBOMGenerator{}
+		sbomGenerator.GenerateFromDependencyCall.Returns.SBOM = sbom.SBOM{}
+
 		installProcess = &fakes.InstallProcess{}
 		siteProcess = &fakes.SitePackageProcess{}
 		siteProcess.ExecuteCall.Returns.String = filepath.Join(layersDir, "poetry", "lib", "python3.8", "site-packages")
@@ -87,19 +97,21 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		buffer = bytes.NewBuffer(nil)
 		logEmitter := scribe.NewEmitter(buffer)
 
-		build = poetry.Build(entryResolver, dependencyManager, installProcess, siteProcess, clock, logEmitter)
-	})
+		build = poetry.Build(
+			entryResolver,
+			dependencyManager,
+			installProcess,
+			siteProcess,
+			sbomGenerator,
+			clock,
+			logEmitter,
+		)
 
-	it.After(func() {
-		Expect(os.RemoveAll(layersDir)).To(Succeed())
-		Expect(os.RemoveAll(cnbDir)).To(Succeed())
-	})
-
-	it("returns a result that installs poetry", func() {
-		result, err := build(packit.BuildContext{
+		buildContext = packit.BuildContext{
 			BuildpackInfo: packit.BuildpackInfo{
-				Name:    "Some Buildpack",
-				Version: "some-version",
+				Name:        "Some Buildpack",
+				Version:     "some-version",
+				SBOMFormats: []string{sbom.CycloneDXFormat, sbom.SPDXFormat},
 			},
 			CNBPath: cnbDir,
 			Plan: packit.BuildpackPlan{
@@ -110,29 +122,48 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			Platform: packit.Platform{Path: "platform"},
 			Layers:   packit.Layers{Path: layersDir},
 			Stack:    "some-stack",
-		})
+		}
+	})
+
+	it.After(func() {
+		Expect(os.RemoveAll(layersDir)).To(Succeed())
+		Expect(os.RemoveAll(cnbDir)).To(Succeed())
+	})
+
+	it("returns a result that installs poetry", func() {
+		result, err := build(buildContext)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(result).To(Equal(packit.BuildResult{
-			Layers: []packit.Layer{
-				{
-					Name: "poetry",
-					Path: filepath.Join(layersDir, "poetry"),
-					SharedEnv: packit.Environment{
-						"PYTHONPATH.delim":   ":",
-						"PYTHONPATH.prepend": filepath.Join(layersDir, "poetry", "lib/python3.8/site-packages"),
-					},
-					BuildEnv:         packit.Environment{},
-					LaunchEnv:        packit.Environment{},
-					ProcessLaunchEnv: map[string]packit.Environment{},
-					Build:            false,
-					Launch:           false,
-					Cache:            false,
-					Metadata: map[string]interface{}{
-						"dependency-sha": "poetry-dependency-sha",
-						"built_at":       timestamp.Format(time.RFC3339Nano),
-					},
-				},
+		Expect(result.Layers).To(HaveLen(1))
+		layer := result.Layers[0]
+
+		Expect(layer.Name).To(Equal("poetry"))
+		Expect(layer.Path).To(Equal(filepath.Join(layersDir, "poetry")))
+
+		Expect(layer.SharedEnv).To(HaveLen(2))
+		Expect(layer.SharedEnv["PYTHONPATH.delim"]).To(Equal(":"))
+		Expect(layer.SharedEnv["PYTHONPATH.prepend"]).To(Equal(filepath.Join(layersDir, "poetry", "lib/python3.8/site-packages")))
+
+		Expect(layer.BuildEnv).To(BeEmpty())
+		Expect(layer.LaunchEnv).To(BeEmpty())
+		Expect(layer.ProcessLaunchEnv).To(BeEmpty())
+
+		Expect(layer.Build).To(BeFalse())
+		Expect(layer.Launch).To(BeFalse())
+		Expect(layer.Cache).To(BeFalse())
+
+		Expect(layer.Metadata).To(HaveLen(2))
+		Expect(layer.Metadata["dependency-sha"]).To(Equal("poetry-dependency-sha"))
+		Expect(layer.Metadata["built_at"]).To(Equal(timestamp.Format(time.RFC3339Nano)))
+
+		Expect(layer.SBOM.Formats()).To(Equal([]packit.SBOMFormat{
+			{
+				Extension: sbom.Format(sbom.CycloneDXFormat).Extension(),
+				Content:   sbom.NewFormattedReader(sbom.SBOM{}, sbom.CycloneDXFormat),
+			},
+			{
+				Extension: sbom.Format(sbom.SPDXFormat).Extension(),
+				Content:   sbom.NewFormattedReader(sbom.SBOM{}, sbom.SPDXFormat),
 			},
 		}))
 
@@ -175,6 +206,8 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			},
 		}))
 
+		Expect(sbomGenerator.GenerateFromDependencyCall.Receives.Dir).To(Equal(filepath.Join(layersDir, "poetry")))
+
 		Expect(installProcess.ExecuteCall.Receives.SrcPath).To(Equal(dependencyManager.DeliverCall.Receives.DestinationPath))
 		Expect(installProcess.ExecuteCall.Receives.TargetLayerPath).To(Equal(filepath.Join(layersDir, "poetry")))
 
@@ -193,76 +226,49 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("makes the layer available in those phases", func() {
-			result, err := build(packit.BuildContext{
-				CNBPath: cnbDir,
-				Plan: packit.BuildpackPlan{
-					Entries: []packit.BuildpackPlanEntry{
-						{
-							Name: "poetry",
-							Metadata: map[string]interface{}{
-								"build":  true,
-								"launch": true,
-							},
-						},
-					},
-				},
-				Layers: packit.Layers{Path: layersDir},
-				Stack:  "some-stack",
-			})
+			result, err := build(buildContext)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(result).To(Equal(packit.BuildResult{
-				Layers: []packit.Layer{
+			Expect(result.Layers).To(HaveLen(1))
+			layer := result.Layers[0]
+
+			Expect(layer.Name).To(Equal("poetry"))
+
+			Expect(layer.Build).To(BeTrue())
+			Expect(layer.Launch).To(BeTrue())
+			Expect(layer.Cache).To(BeTrue())
+
+			Expect(result.Build.BOM).To(Equal(
+				[]packit.BOMEntry{
 					{
 						Name: "poetry",
-						Path: filepath.Join(layersDir, "poetry"),
-						SharedEnv: packit.Environment{
-							"PYTHONPATH.delim":   ":",
-							"PYTHONPATH.prepend": filepath.Join(layersDir, "poetry", "lib/python3.8/site-packages"),
-						},
-						BuildEnv:         packit.Environment{},
-						LaunchEnv:        packit.Environment{},
-						ProcessLaunchEnv: map[string]packit.Environment{},
-						Build:            true,
-						Launch:           true,
-						Cache:            true,
-						Metadata: map[string]interface{}{
-							"dependency-sha": "poetry-dependency-sha",
-							"built_at":       timestamp.Format(time.RFC3339Nano),
-						},
-					},
-				},
-				Build: packit.BuildMetadata{
-					BOM: []packit.BOMEntry{
-						{
-							Name: "poetry",
-							Metadata: paketosbom.BOMMetadata{
-								Checksum: paketosbom.BOMChecksum{
-									Algorithm: paketosbom.SHA256,
-									Hash:      "poetry-dependency-sha",
-								},
-								URI:     "poetry-dependency-uri",
-								Version: "poetry-dependency-version",
+						Metadata: paketosbom.BOMMetadata{
+							Checksum: paketosbom.BOMChecksum{
+								Algorithm: paketosbom.SHA256,
+								Hash:      "poetry-dependency-sha",
 							},
+							URI:     "poetry-dependency-uri",
+							Version: "poetry-dependency-version",
 						},
 					},
 				},
-				Launch: packit.LaunchMetadata{
-					BOM: []packit.BOMEntry{
-						{
-							Name: "poetry",
-							Metadata: paketosbom.BOMMetadata{
-								Checksum: paketosbom.BOMChecksum{
-									Algorithm: paketosbom.SHA256,
-									Hash:      "poetry-dependency-sha",
-								},
-								URI:     "poetry-dependency-uri",
-								Version: "poetry-dependency-version",
+			))
+
+			Expect(result.Launch.BOM).To(Equal(
+				[]packit.BOMEntry{
+					{
+						Name: "poetry",
+						Metadata: paketosbom.BOMMetadata{
+							Checksum: paketosbom.BOMChecksum{
+								Algorithm: paketosbom.SHA256,
+								Hash:      "poetry-dependency-sha",
 							},
+							URI:     "poetry-dependency-uri",
+							Version: "poetry-dependency-version",
 						},
 					},
 				},
-			}))
+			))
 		})
 	})
 
@@ -273,16 +279,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					CNBPath: cnbDir,
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "poetry"},
-						},
-					},
-					Layers: packit.Layers{Path: layersDir},
-					Stack:  "some-stack",
-				})
+				_, err := build(buildContext)
 				Expect(err).To(MatchError("failed to resolve dependency"))
 			})
 		})
@@ -294,16 +291,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					CNBPath: cnbDir,
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "poetry"},
-						},
-					},
-					Layers: packit.Layers{Path: layersDir},
-					Stack:  "some-stack",
-				})
+				_, err := build(buildContext)
 				Expect(err).To(MatchError(ContainSubstring("failed to parse layer content metadata")))
 			})
 		})
@@ -319,16 +307,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					CNBPath: cnbDir,
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "poetry"},
-						},
-					},
-					Layers: packit.Layers{Path: layersDir},
-					Stack:  "some-stack",
-				})
+				_, err := build(buildContext)
 				Expect(err).To(MatchError(ContainSubstring("could not remove file")))
 			})
 		})
@@ -339,17 +318,41 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					CNBPath: cnbDir,
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "poetry"},
-						},
-					},
-					Layers: packit.Layers{Path: layersDir},
-					Stack:  "some-stack",
-				})
+				_, err := build(buildContext)
 				Expect(err).To(MatchError("failed to deliver dependency"))
+			})
+		})
+
+		context("when the install process returns an error", func() {
+			it.Before(func() {
+				installProcess.ExecuteCall.Returns.Error = errors.New("failed to run install process")
+			})
+
+			it("returns an error", func() {
+				_, err := build(buildContext)
+				Expect(err).To(MatchError("failed to run install process"))
+			})
+		})
+
+		context("when generating the SBOM returns an error", func() {
+			it.Before(func() {
+				buildContext.BuildpackInfo.SBOMFormats = []string{"random-format"}
+			})
+
+			it("returns an error", func() {
+				_, err := build(buildContext)
+				Expect(err).To(MatchError(`unsupported SBOM format: 'random-format'`))
+			})
+		})
+
+		context("when formatting the SBOM returns an error", func() {
+			it.Before(func() {
+				sbomGenerator.GenerateFromDependencyCall.Returns.Error = errors.New("failed to generate SBOM")
+			})
+
+			it("returns an error", func() {
+				_, err := build(buildContext)
+				Expect(err).To(MatchError(ContainSubstring("failed to generate SBOM")))
 			})
 		})
 	})
