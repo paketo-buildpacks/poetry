@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	packit "github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
@@ -29,7 +28,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		layersDir string
 		cnbDir    string
-		timestamp time.Time
 
 		entryResolver     *fakes.EntryResolver
 		dependencyManager *fakes.DependencyManager
@@ -50,11 +48,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		cnbDir, err = os.MkdirTemp("", "cnb")
 		Expect(err).NotTo(HaveOccurred())
-
-		timestamp = time.Now()
-		clock := chronos.NewClock(func() time.Time {
-			return timestamp
-		})
 
 		entryResolver = &fakes.EntryResolver{}
 		entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
@@ -103,7 +96,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			installProcess,
 			siteProcess,
 			sbomGenerator,
-			clock,
+			chronos.DefaultClock,
 			logEmitter,
 		)
 
@@ -152,9 +145,8 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(layer.Launch).To(BeFalse())
 		Expect(layer.Cache).To(BeFalse())
 
-		Expect(layer.Metadata).To(HaveLen(2))
+		Expect(layer.Metadata).To(HaveLen(1))
 		Expect(layer.Metadata["dependency-sha"]).To(Equal("poetry-dependency-sha"))
-		Expect(layer.Metadata["built_at"]).To(Equal(timestamp.Format(time.RFC3339Nano)))
 
 		Expect(layer.SBOM.Formats()).To(Equal([]packit.SBOMFormat{
 			{
