@@ -174,9 +174,7 @@ func Build(
 			return packit.BuildResult{}, err
 		}
 
-		logger.Process("Configuring environment")
-		logger.Subprocess("%s", scribe.NewFormattedMapFromEnvironment(poetryLayer.SharedEnv))
-		logger.Break()
+		logger.EnvironmentVariables(poetryLayer)
 
 		poetryLayer.Metadata = map[string]interface{}{
 			DependencySHAKey: dependency.SHA256,
