@@ -24,7 +24,6 @@ api = "0.7"
     stacks = ["io.buildpacks.stacks.bionic"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.12_linux_noarch_bionic_0101090a.tgz"
     version = "1.1.12"
-    cpe = "cpe:2.3:a:python-poetry:poetry:1.1.12:*:*:*:*:python:*:*"
 
   [[metadata.dependencies]]
     id = "poetry"
@@ -37,7 +36,6 @@ api = "0.7"
     stacks = ["io.buildpacks.stacks.bionic"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.13_linux_noarch_bionic_dad602ca.tgz"
     version = "1.1.13"
-    cpe = "cpe:2.3:a:python-poetry:poetry:1.1.13:*:*:*:*:python:*:*"
 
   [[metadata.dependency-constraints]]
     constraint = "1.1.*"
