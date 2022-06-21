@@ -14,6 +14,7 @@ api = "0.7"
   pre-package = "./scripts/build.sh"
 
   [[metadata.dependencies]]
+    cpe = "cpe:2.3:a:python-poetry:poetry:1.1.12:*:*:*:*:python:*:*"
     id = "poetry"
     licenses = ["MIT", "MIT-0"]
     name = "Poetry"
@@ -26,6 +27,7 @@ api = "0.7"
     version = "1.1.12"
 
   [[metadata.dependencies]]
+    cpe = "cpe:2.3:a:python-poetry:poetry:1.1.13:*:*:*:*:python:*:*"
     id = "poetry"
     licenses = ["MIT", "MIT-0"]
     name = "Poetry"
