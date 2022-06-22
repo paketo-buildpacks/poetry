@@ -2,7 +2,6 @@ package poetry
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -27,13 +26,12 @@ type EntryResolver interface {
 
 type DependencyManager interface {
 	Resolve(path, id, version, stack string) (postal.Dependency, error)
-	Deliver(dependency postal.Dependency, cnbPath, destinationPath, platformPath string) error
 	GenerateBillOfMaterials(dependencies ...postal.Dependency) []packit.BOMEntry
 }
 
 // InstallProcess defines the interface for installing the poetry dependency into a layer.
 type InstallProcess interface {
-	Execute(srcPath, targetLayerPath string) error
+	Execute(version, targetLayerPath string) error
 }
 
 // SitePackageProcess defines the interface for looking site packages within a layer.
@@ -105,8 +103,6 @@ func Build(
 			}, nil
 		}
 
-		logger.Process("Executing build process")
-
 		poetryLayer, err = poetryLayer.Reset()
 		if err != nil {
 			return packit.BuildResult{}, err
@@ -114,22 +110,10 @@ func Build(
 
 		poetryLayer.Launch, poetryLayer.Build, poetryLayer.Cache = launch, build, build
 
+		logger.Process("Executing build process")
 		logger.Subprocess("Installing Poetry %s", dependency.Version)
 		duration, err := clock.Measure(func() error {
-			// Install the poetry source to a temporary dir, since we only need access to
-			// it as an intermediate step when installing poetry.
-			// It doesn't need to go into a layer, since we won't need it in future builds.
-			poetrySrcDir, err := os.MkdirTemp("", "poetry-source")
-			if err != nil {
-				return fmt.Errorf("failed to create temp poetry-source dir: %w", err)
-			}
-
-			err = dependencyManager.Deliver(dependency, context.CNBPath, poetrySrcDir, context.Platform.Path)
-			if err != nil {
-				return err
-			}
-
-			err = installProcess.Execute(poetrySrcDir, poetryLayer.Path)
+			err = installProcess.Execute(dependency.Version, poetryLayer.Path)
 			if err != nil {
 				return err
 			}

@@ -8,20 +8,6 @@ import (
 )
 
 type DependencyManager struct {
-	DeliverCall struct {
-		mutex     sync.Mutex
-		CallCount int
-		Receives  struct {
-			Dependency      postal.Dependency
-			CnbPath         string
-			DestinationPath string
-			PlatformPath    string
-		}
-		Returns struct {
-			Error error
-		}
-		Stub func(postal.Dependency, string, string, string) error
-	}
 	GenerateBillOfMaterialsCall struct {
 		mutex     sync.Mutex
 		CallCount int
@@ -50,19 +36,6 @@ type DependencyManager struct {
 	}
 }
 
-func (f *DependencyManager) Deliver(param1 postal.Dependency, param2 string, param3 string, param4 string) error {
-	f.DeliverCall.mutex.Lock()
-	defer f.DeliverCall.mutex.Unlock()
-	f.DeliverCall.CallCount++
-	f.DeliverCall.Receives.Dependency = param1
-	f.DeliverCall.Receives.CnbPath = param2
-	f.DeliverCall.Receives.DestinationPath = param3
-	f.DeliverCall.Receives.PlatformPath = param4
-	if f.DeliverCall.Stub != nil {
-		return f.DeliverCall.Stub(param1, param2, param3, param4)
-	}
-	return f.DeliverCall.Returns.Error
-}
 func (f *DependencyManager) GenerateBillOfMaterials(param1 ...postal.Dependency) []packit.BOMEntry {
 	f.GenerateBillOfMaterialsCall.mutex.Lock()
 	defer f.GenerateBillOfMaterialsCall.mutex.Unlock()

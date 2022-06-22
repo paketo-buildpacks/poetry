@@ -7,7 +7,7 @@ type InstallProcess struct {
 		mutex     sync.Mutex
 		CallCount int
 		Receives  struct {
-			SrcPath         string
+			Version         string
 			TargetLayerPath string
 		}
 		Returns struct {
@@ -21,7 +21,7 @@ func (f *InstallProcess) Execute(param1 string, param2 string) error {
 	f.ExecuteCall.mutex.Lock()
 	defer f.ExecuteCall.mutex.Unlock()
 	f.ExecuteCall.CallCount++
-	f.ExecuteCall.Receives.SrcPath = param1
+	f.ExecuteCall.Receives.Version = param1
 	f.ExecuteCall.Receives.TargetLayerPath = param2
 	if f.ExecuteCall.Stub != nil {
 		return f.ExecuteCall.Stub(param1, param2)
