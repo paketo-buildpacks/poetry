@@ -26,14 +26,13 @@ func NewPoetryInstallProcess(executable Executable) PoetryInstallProcess {
 	}
 }
 
-// Execute installs the poetry binary from source code located in the given
-// srcPath into the layer path designated by targetLayerPath.
-func (p PoetryInstallProcess) Execute(srcPath, targetLayerPath string) error {
+// Execute installs the provided version of pipenv from the internet into the
+// layer path designated by targetLayerPath
+func (p PoetryInstallProcess) Execute(version, targetLayerPath string) error {
 	buffer := bytes.NewBuffer(nil)
 
 	err := p.executable.Execute(pexec.Execution{
-		// Install poetry from source with the pip that comes from a previous buildpack
-		Args: []string{"install", "poetry", "--user", fmt.Sprintf("--find-links=%s", srcPath)},
+		Args: []string{"install", fmt.Sprintf("poetry==%s", version), "--user"},
 		// Set the PYTHONUSERBASE to ensure that pip is installed to the newly created target layer.
 		Env:    append(os.Environ(), fmt.Sprintf("PYTHONUSERBASE=%s", targetLayerPath)),
 		Stdout: buffer,

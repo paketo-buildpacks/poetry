@@ -174,18 +174,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("default"))
 		Expect(dependencyManager.ResolveCall.Receives.Stack).To(Equal("some-stack"))
 
-		Expect(dependencyManager.DeliverCall.Receives.Dependency).To(Equal(postal.Dependency{
-			ID:      "poetry",
-			Name:    "poetry-dependency-name",
-			SHA256:  "poetry-dependency-sha",
-			Stacks:  []string{"some-stack"},
-			URI:     "poetry-dependency-uri",
-			Version: "poetry-dependency-version",
-		}))
-		Expect(dependencyManager.DeliverCall.Receives.CnbPath).To(Equal(cnbDir))
-		Expect(dependencyManager.DeliverCall.Receives.DestinationPath).To(ContainSubstring("poetry-source"))
-		Expect(dependencyManager.DeliverCall.Receives.PlatformPath).To(Equal("platform"))
-
 		Expect(dependencyManager.GenerateBillOfMaterialsCall.CallCount).To(Equal(1))
 		Expect(dependencyManager.GenerateBillOfMaterialsCall.Receives.Dependencies).To(Equal([]postal.Dependency{
 			{
@@ -200,7 +188,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(sbomGenerator.GenerateFromDependencyCall.Receives.Dir).To(Equal(filepath.Join(layersDir, "poetry")))
 
-		Expect(installProcess.ExecuteCall.Receives.SrcPath).To(Equal(dependencyManager.DeliverCall.Receives.DestinationPath))
+		Expect(installProcess.ExecuteCall.Receives.Version).To(ContainSubstring("poetry-dependency-version"))
 		Expect(installProcess.ExecuteCall.Receives.TargetLayerPath).To(Equal(filepath.Join(layersDir, "poetry")))
 
 		Expect(buffer.String()).To(ContainSubstring("Some Buildpack some-version"))
@@ -301,17 +289,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			it("returns an error", func() {
 				_, err := build(buildContext)
 				Expect(err).To(MatchError(ContainSubstring("could not remove file")))
-			})
-		})
-
-		context("when the dependency cannot be installed", func() {
-			it.Before(func() {
-				dependencyManager.DeliverCall.Returns.Error = errors.New("failed to deliver dependency")
-			})
-
-			it("returns an error", func() {
-				_, err := build(buildContext)
-				Expect(err).To(MatchError("failed to deliver dependency"))
 			})
 		})
 
