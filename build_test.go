@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	packit "github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
 
 	//nolint Ignore SA1019, informed usage of deprecated package
@@ -29,7 +29,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		layersDir string
 		cnbDir    string
 
-		entryResolver     *fakes.EntryResolver
 		dependencyManager *fakes.DependencyManager
 		installProcess    *fakes.InstallProcess
 		siteProcess       *fakes.SitePackageProcess
@@ -48,11 +47,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		cnbDir, err = os.MkdirTemp("", "cnb")
 		Expect(err).NotTo(HaveOccurred())
-
-		entryResolver = &fakes.EntryResolver{}
-		entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
-			Name: "poetry",
-		}
 
 		// Legacy SBOM
 		dependencyManager = &fakes.DependencyManager{}
@@ -91,7 +85,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		logEmitter := scribe.NewEmitter(buffer)
 
 		build = poetry.Build(
-			entryResolver,
 			dependencyManager,
 			installProcess,
 			siteProcess,
@@ -159,16 +152,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			},
 		}))
 
-		Expect(entryResolver.ResolveCall.Receives.Name).To(Equal("poetry"))
-		Expect(entryResolver.ResolveCall.Receives.Entries).To(Equal([]packit.BuildpackPlanEntry{
-			{Name: "poetry"},
-		}))
-
-		Expect(entryResolver.MergeLayerTypesCall.Receives.Name).To(Equal("poetry"))
-		Expect(entryResolver.MergeLayerTypesCall.Receives.Entries).To(Equal([]packit.BuildpackPlanEntry{
-			{Name: "poetry"},
-		}))
-
 		Expect(dependencyManager.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbDir, "buildpack.toml")))
 		Expect(dependencyManager.ResolveCall.Receives.Id).To(Equal("poetry"))
 		Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("default"))
@@ -201,8 +184,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 	context("when the plan entry requires the dependency during the build and launch phases", func() {
 		it.Before(func() {
-			entryResolver.MergeLayerTypesCall.Returns.Launch = true
-			entryResolver.MergeLayerTypesCall.Returns.Build = true
+			buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+				"launch": true,
+				"build":  true,
+			}
 		})
 
 		it("makes the layer available in those phases", func() {
