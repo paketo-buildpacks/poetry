@@ -3,10 +3,9 @@ package main
 import (
 	"os"
 
-	packit "github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
-	"github.com/paketo-buildpacks/packit/v2/draft"
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 	"github.com/paketo-buildpacks/packit/v2/postal"
 	"github.com/paketo-buildpacks/packit/v2/sbom"
@@ -26,7 +25,6 @@ func main() {
 	packit.Run(
 		poetry.Detect(poetry.NewPyProjectParser()),
 		poetry.Build(
-			draft.NewPlanner(),
 			postal.NewService(cargo.NewTransport()),
 			poetry.NewPoetryInstallProcess(pexec.NewExecutable("pip")),
 			poetry.NewSiteProcess(pexec.NewExecutable("python")),

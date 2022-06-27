@@ -6,23 +6,18 @@ import (
 	"strings"
 	"time"
 
-	packit "github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
+	"github.com/paketo-buildpacks/packit/v2/draft"
 	"github.com/paketo-buildpacks/packit/v2/postal"
 	"github.com/paketo-buildpacks/packit/v2/sbom"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
-//go:generate faux --interface EntryResolver --output fakes/entry_resolver.go
 //go:generate faux --interface DependencyManager --output fakes/dependency_manager.go
 //go:generate faux --interface InstallProcess --output fakes/install_process.go
 //go:generate faux --interface SitePackageProcess --output fakes/site_package_process.go
 //go:generate faux --interface SBOMGenerator --output fakes/sbom_generator.go
-
-type EntryResolver interface {
-	Resolve(name string, entries []packit.BuildpackPlanEntry, priorites []interface{}) (packit.BuildpackPlanEntry, []packit.BuildpackPlanEntry)
-	MergeLayerTypes(name string, entries []packit.BuildpackPlanEntry) (launch, build bool)
-}
 
 type DependencyManager interface {
 	Resolve(path, id, version, stack string) (postal.Dependency, error)
@@ -44,7 +39,6 @@ type SBOMGenerator interface {
 }
 
 func Build(
-	entryResolver EntryResolver,
 	dependencyManager DependencyManager,
 	installProcess InstallProcess,
 	siteProcess SitePackageProcess,
@@ -56,7 +50,8 @@ func Build(
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 
 		logger.Process("Resolving Poetry version")
-		entry, entries := entryResolver.Resolve(PoetryDependency, context.Plan.Entries, Priorities)
+		planner := draft.NewPlanner()
+		entry, entries := planner.Resolve(PoetryDependency, context.Plan.Entries, Priorities)
 		logger.Candidates(entries)
 
 		version, ok := entry.Metadata["version"].(string)
@@ -77,7 +72,7 @@ func Build(
 			return packit.BuildResult{}, err
 		}
 
-		launch, build := entryResolver.MergeLayerTypes(PoetryDependency, context.Plan.Entries)
+		launch, build := planner.MergeLayerTypes(PoetryDependency, context.Plan.Entries)
 
 		var buildMetadata = packit.BuildMetadata{}
 		var launchMetadata = packit.LaunchMetadata{}
