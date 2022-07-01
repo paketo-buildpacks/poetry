@@ -62,8 +62,8 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 			source, err = occam.Source(filepath.Join("testdata", "default_app"))
 			Expect(err).NotTo(HaveOccurred())
 
-			firstPoetryVersion := buildpackInfo.Metadata.Dependencies[0].Version
-			secondPoetryVersion := buildpackInfo.Metadata.Dependencies[1].Version
+			firstPoetryVersion := "1.1.12"
+			secondPoetryVersion := "1.1.13"
 
 			Expect(firstPoetryVersion).NotTo(Equal(secondPoetryVersion))
 
