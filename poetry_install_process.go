@@ -8,13 +8,6 @@ import (
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
 
-//go:generate faux --interface Executable --output fakes/executable.go
-
-// Executable defines the interface for invoking an executable.
-type Executable interface {
-	Execute(pexec.Execution) error
-}
-
 type PoetryInstallProcess struct {
 	executable Executable
 }
@@ -31,8 +24,15 @@ func NewPoetryInstallProcess(executable Executable) PoetryInstallProcess {
 func (p PoetryInstallProcess) Execute(version, targetLayerPath string) error {
 	buffer := bytes.NewBuffer(nil)
 
+	var poetryVersionRequirement string
+	if version == "" {
+		poetryVersionRequirement = "poetry"
+	} else {
+		poetryVersionRequirement = fmt.Sprintf("poetry==%s", version)
+	}
+
 	err := p.executable.Execute(pexec.Execution{
-		Args: []string{"install", fmt.Sprintf("poetry==%s", version), "--user"},
+		Args: []string{"install", poetryVersionRequirement, "--user"},
 		// Set the PYTHONUSERBASE to ensure that pip is installed to the newly created target layer.
 		Env:    append(os.Environ(), fmt.Sprintf("PYTHONUSERBASE=%s", targetLayerPath)),
 		Stdout: buffer,
