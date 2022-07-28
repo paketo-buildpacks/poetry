@@ -15,7 +15,12 @@ source "${PROGDIR}/.util/print.sh"
 # shellcheck source=SCRIPTDIR/.util/git.sh
 source "${PROGDIR}/.util/git.sh"
 
+# shellcheck source=SCRIPTDIR/.util/builders.sh
+source "${PROGDIR}/.util/builders.sh"
+
 function main() {
+  local builderArray
+  builderArray=()
   while [[ "${#}" != 0 ]]; do
     case "${1}" in
       --use-token|-t)
@@ -27,6 +32,11 @@ function main() {
         shift 1
         usage
         exit 0
+        ;;
+
+      --builder|-b)
+        builderArray+=("${2}")
+        shift 2
         ;;
 
       "")
@@ -44,8 +54,32 @@ function main() {
   fi
 
   tools::install
-  images::pull
-  tests::run
+
+  if [ ${#builderArray[@]} -eq 0 ]; then
+    util::print::title "No builders provided. Finding builders in integration.json..."
+
+    local builders
+    builders="$(util::builders::list "${BUILDPACKDIR}/integration.json" | jq -r '.[]' )"
+
+    # shellcheck disable=SC2206
+    IFS=$'\n' builderArray=(${builders})
+    unset IFS
+  fi
+
+  # shellcheck disable=SC2068
+  images::pull ${builderArray[@]}
+
+  local testout
+  testout=$(mktemp)
+  for builder in "${builderArray[@]}"; do
+    util::print::title "Setting default pack builder image..."
+    pack config default-builder "${builder}"
+
+    tests::run "${builder}" "${testout}"
+  done
+
+  util::tools::tests::checkfocus "${testout}"
+  util::print::success "** GO Test Succeeded with all builders**"
 }
 
 function usage() {
@@ -55,8 +89,10 @@ integration.sh [OPTIONS]
 Runs the integration test suite.
 
 OPTIONS
-  --help       -h  prints the command usage
-  --use-token  -t  use GIT_TOKEN from lastpass
+  --help           -h         prints the command usage
+  --use-token      -t         use GIT_TOKEN from lastpass
+  --builder <name> -b <name>  sets the name of the builder(s) that are pulled / used for testing.
+                              Defaults to "builders" array in integration.json, if present.
 USAGE
 }
 
@@ -77,38 +113,26 @@ function tools::install() {
 }
 
 function images::pull() {
-  local builder
-  builder=""
+  for builder in "${@}"; do
+    util::print::title "Pulling builder image ${builder}..."
+    docker pull "${builder}"
 
-  if [[ -f "${BUILDPACKDIR}/integration.json" ]]; then
-    builder="$(jq -r .builder "${BUILDPACKDIR}/integration.json")"
-  fi
+    local run_image lifecycle_image
+    run_image="$(
+      pack inspect-builder "${builder}" --output json \
+        | jq -r '.remote_info.run_images[0].name'
+    )"
+    lifecycle_image="index.docker.io/buildpacksio/lifecycle:$(
+      pack inspect-builder "${builder}" --output json \
+        | jq -r '.remote_info.lifecycle.version'
+    )"
 
-  if [[ "${builder}" == "null" || -z "${builder}" ]]; then
-    builder="index.docker.io/paketobuildpacks/builder:buildpackless-base"
-  fi
+    util::print::title "Pulling run image..."
+    docker pull "${run_image}"
 
-  util::print::title "Pulling builder image..."
-  docker pull "${builder}"
-
-  util::print::title "Setting default pack builder image..."
-  pack config default-builder "${builder}"
-
-  local run_image lifecycle_image
-  run_image="$(
-    pack inspect-builder "${builder}" --output json \
-      | jq -r '.remote_info.run_images[0].name'
-  )"
-  lifecycle_image="index.docker.io/buildpacksio/lifecycle:$(
-    pack inspect-builder "${builder}" --output json \
-      | jq -r '.remote_info.lifecycle.version'
-  )"
-
-  util::print::title "Pulling run image..."
-  docker pull "${run_image}"
-
-  util::print::title "Pulling lifecycle image..."
-  docker pull "${lifecycle_image}"
+    util::print::title "Pulling lifecycle image..."
+    docker pull "${lifecycle_image}"
+  done
 }
 
 function token::fetch() {
@@ -118,14 +142,13 @@ function token::fetch() {
 
 function tests::run() {
   util::print::title "Run Buildpack Runtime Integration Tests"
+  util::print::info "Using ${1} as builder..."
 
-  testout=$(mktemp)
   pushd "${BUILDPACKDIR}" > /dev/null
-    if GOMAXPROCS="${GOMAXPROCS:-4}" go test -count=1 -timeout 0 ./integration/... -v -run Integration | tee "${testout}"; then
-      util::tools::tests::checkfocus "${testout}"
-      util::print::success "** GO Test Succeeded **"
+    if GOMAXPROCS="${GOMAXPROCS:-4}" go test -count=1 -timeout 0 ./integration/... -v -run Integration | tee "${2}"; then
+      util::print::info "** GO Test Succeeded with ${1}**"
     else
-      util::print::error "** GO Test Failed **"
+      util::print::error "** GO Test Failed with ${1}**"
     fi
   popd > /dev/null
 }
