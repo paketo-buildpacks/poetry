@@ -1,13 +1,15 @@
 package poetry
 
 const (
-	DependencySHAKey = "dependency-sha"
+	PoetryVersion    = "poetry-version"
 	PoetryDependency = "poetry"
 	PoetryLayerName  = "poetry"
 	CPython          = "cpython"
 	Pip              = "pip"
+	DefaultVersions  = "default-versions"
 )
 
 var Priorities = []interface{}{
-	"BP_PIP_VERSION",
+	"BP_POETRY_VERSION",
+	DefaultVersions,
 }

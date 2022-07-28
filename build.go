@@ -7,22 +7,16 @@ import (
 	"time"
 
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
 	"github.com/paketo-buildpacks/packit/v2/draft"
-	"github.com/paketo-buildpacks/packit/v2/postal"
 	"github.com/paketo-buildpacks/packit/v2/sbom"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
-//go:generate faux --interface DependencyManager --output fakes/dependency_manager.go
 //go:generate faux --interface InstallProcess --output fakes/install_process.go
 //go:generate faux --interface SitePackageProcess --output fakes/site_package_process.go
 //go:generate faux --interface SBOMGenerator --output fakes/sbom_generator.go
-
-type DependencyManager interface {
-	Resolve(path, id, version, stack string) (postal.Dependency, error)
-	GenerateBillOfMaterials(dependencies ...postal.Dependency) []packit.BOMEntry
-}
 
 // InstallProcess defines the interface for installing the poetry dependency into a layer.
 type InstallProcess interface {
@@ -35,11 +29,10 @@ type SitePackageProcess interface {
 }
 
 type SBOMGenerator interface {
-	GenerateFromDependency(dependency postal.Dependency, dir string) (sbom.SBOM, error)
+	Generate(dir string) (sbom.SBOM, error)
 }
 
 func Build(
-	dependencyManager DependencyManager,
 	installProcess InstallProcess,
 	siteProcess SitePackageProcess,
 	sbomGenerator SBOMGenerator,
@@ -50,22 +43,31 @@ func Build(
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 
 		logger.Process("Resolving Poetry version")
-		planner := draft.NewPlanner()
-		entry, entries := planner.Resolve(PoetryDependency, context.Plan.Entries, Priorities)
-		logger.Candidates(entries)
 
-		version, ok := entry.Metadata["version"].(string)
-		if !ok {
-			version = "default"
-		}
-
-		dependency, err := dependencyManager.Resolve(filepath.Join(context.CNBPath, "buildpack.toml"), entry.Name, version, context.Stack)
+		config, err := cargo.NewBuildpackParser().Parse(filepath.Join(context.CNBPath, "buildpack.toml"))
 		if err != nil {
 			return packit.BuildResult{}, err
 		}
 
-		logger.SelectedDependency(entry, dependency, clock.Now())
-		legacySBOM := dependencyManager.GenerateBillOfMaterials(dependency)
+		entries := context.Plan.Entries
+		entries = append(entries, packit.BuildpackPlanEntry{
+			Name: PoetryDependency,
+			Metadata: map[string]interface{}{
+				"version":        config.Metadata.DefaultVersions[PoetryDependency],
+				"version-source": DefaultVersions,
+			},
+		})
+
+		planner := draft.NewPlanner()
+		entry, entries := planner.Resolve(PoetryDependency, entries, Priorities)
+		logger.Candidates(entries)
+
+		version := entry.Metadata["version"].(string)
+		source, ok := entry.Metadata["version-source"].(string)
+		if !ok {
+			source = "<unknown>"
+		}
+		logger.Subprocess("Selected Poetry version (using %s): %s", source, version)
 
 		poetryLayer, err := context.Layers.Get(PoetryLayerName)
 		if err != nil {
@@ -74,18 +76,8 @@ func Build(
 
 		launch, build := planner.MergeLayerTypes(PoetryDependency, context.Plan.Entries)
 
-		var buildMetadata = packit.BuildMetadata{}
-		var launchMetadata = packit.LaunchMetadata{}
-		if build {
-			buildMetadata = packit.BuildMetadata{BOM: legacySBOM}
-		}
-
-		if launch {
-			launchMetadata = packit.LaunchMetadata{BOM: legacySBOM}
-		}
-
-		cachedSHA, ok := poetryLayer.Metadata[DependencySHAKey].(string)
-		if ok && cachedSHA == dependency.SHA256 {
+		cachedPoetryVersion, ok := poetryLayer.Metadata[PoetryVersion].(string)
+		if ok && cachedPoetryVersion == version {
 			logger.Process("Reusing cached layer %s", poetryLayer.Path)
 			logger.Break()
 
@@ -93,8 +85,6 @@ func Build(
 
 			return packit.BuildResult{
 				Layers: []packit.Layer{poetryLayer},
-				Build:  buildMetadata,
-				Launch: launchMetadata,
 			}, nil
 		}
 
@@ -106,9 +96,9 @@ func Build(
 		poetryLayer.Launch, poetryLayer.Build, poetryLayer.Cache = launch, build, build
 
 		logger.Process("Executing build process")
-		logger.Subprocess("Installing Poetry %s", dependency.Version)
+		logger.Subprocess("Installing Poetry %s", version)
 		duration, err := clock.Measure(func() error {
-			err = installProcess.Execute(dependency.Version, poetryLayer.Path)
+			err = installProcess.Execute(version, poetryLayer.Path)
 			if err != nil {
 				return err
 			}
@@ -137,7 +127,7 @@ func Build(
 		logger.GeneratingSBOM(poetryLayer.Path)
 		var sbomContent sbom.SBOM
 		duration, err = clock.Measure(func() error {
-			sbomContent, err = sbomGenerator.GenerateFromDependency(dependency, poetryLayer.Path)
+			sbomContent, err = sbomGenerator.Generate(poetryLayer.Path)
 			return err
 		})
 		if err != nil {
@@ -156,13 +146,11 @@ func Build(
 		logger.EnvironmentVariables(poetryLayer)
 
 		poetryLayer.Metadata = map[string]interface{}{
-			DependencySHAKey: dependency.SHA256,
+			PoetryVersion: version,
 		}
 
 		return packit.BuildResult{
 			Layers: []packit.Layer{poetryLayer},
-			Build:  buildMetadata,
-			Launch: launchMetadata,
 		}, nil
 	}
 }

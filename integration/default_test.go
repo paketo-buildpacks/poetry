@@ -72,10 +72,11 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
 				"  Resolving Poetry version",
 				"    Candidate version sources (in priority order):",
-				`      <unknown> -> ""`,
+				`      default-versions -> "1.1.13"`,
+				`      <unknown>        -> ""`,
 			))
 			Expect(logs).To(ContainLines(
-				MatchRegexp(`    Selected Poetry version \(using <unknown>\): \d+\.\d+\.\d+`),
+				`    Selected Poetry version (using default-versions): 1.1.13`,
 			))
 			Expect(logs).To(ContainLines(
 				"  Executing build process",
@@ -115,8 +116,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 
 		context("validating SBOM", func() {
 			var (
-				container2 occam.Container
-				sbomDir    string
+				sbomDir string
 			)
 
 			it.Before(func() {
@@ -127,7 +127,6 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it.After(func() {
-				Expect(docker.Container.Remove.Execute(container2.ID)).To(Succeed())
 				Expect(os.RemoveAll(sbomDir)).To(Succeed())
 			})
 
@@ -175,18 +174,6 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 					"    application/vnd.syft+json",
 				))
 
-				// check that legacy SBOM is included via metadata
-				container2, err = docker.Container.Run.
-					WithCommand("cat /layers/sbom/launch/sbom.legacy.json").
-					Execute(image.ID)
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(func() string {
-					cLogs, err := docker.Container.Logs.Execute(container2.ID)
-					Expect(err).NotTo(HaveOccurred())
-					return cLogs.String()
-				}).Should(ContainSubstring(`"name":"Poetry"`))
-
 				// check that all required SBOM files are present
 				Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.cdx.json")).To(BeARegularFile())
 				Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.spdx.json")).To(BeARegularFile())
@@ -195,7 +182,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				// check an SBOM file to make sure it has an entry for cpython
 				contents, err := os.ReadFile(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "poetry", "sbom.cdx.json"))
 				Expect(err).NotTo(HaveOccurred())
-				Expect(string(contents)).To(ContainSubstring(`"name": "Poetry"`))
+				Expect(string(contents)).To(ContainSubstring(`"name": "poetry"`))
 			})
 		})
 	})
