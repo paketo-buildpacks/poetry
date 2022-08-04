@@ -22,7 +22,7 @@ api = "0.7"
     sha256 = "0101090aec487d41219ea462ce0862586008b3b461aa473912c977b489d3fbb5"
     source = "https://files.pythonhosted.org/packages/2e/90/0905a0ad5bb1a9eb8a820337e7c629cde76060fc1dc934e7b8ed450241b8/poetry-1.1.12.tar.gz"
     source_sha256 = "5c66e2357fe37b552462a88b7d31bfa2ed8e84172208becd666933c776252567"
-    stacks = ["io.buildpacks.stacks.bionic"]
+    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.12_linux_noarch_bionic_0101090a.tgz"
     version = "1.1.12"
 
@@ -35,7 +35,7 @@ api = "0.7"
     sha256 = "dad602cae4cab1114ed03a186715aeace5fbae3f6b824a0b46759b9600cf49d3"
     source = "https://files.pythonhosted.org/packages/bb/54/549ea28f2fae6cea82d566223015234a03d6a88177f12b2104357517be34/poetry-1.1.13.tar.gz"
     source_sha256 = "b905ed610085f568aa61574e0e09260c02bff9eae12ff672af39e9f399357ac4"
-    stacks = ["io.buildpacks.stacks.bionic"]
+    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
     uri = "https://deps.paketo.io/poetry/poetry_1.1.13_linux_noarch_bionic_dad602ca.tgz"
     version = "1.1.13"
 
@@ -46,6 +46,9 @@ api = "0.7"
 
 [[stacks]]
   id = "io.buildpacks.stacks.bionic"
+
+[[stacks]]
+  id = "io.buildpacks.stacks.jammy"
 
 [[stacks]]
   id = "org.cloudfoundry.stacks.cflinuxfs3"
