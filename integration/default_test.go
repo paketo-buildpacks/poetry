@@ -93,12 +93,12 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			Expect(logs).To(ContainLines(
 				"  Resolving CPython version",
 				"    Candidate version sources (in priority order):",
-				`      pyproject.toml -> "3.8.*"`,
+				`      pyproject.toml -> "3.9.*"`,
 				`                     -> ""`,
 				`      <unknown>      -> ""`,
 			))
 			Expect(logs).To(ContainLines(
-				MatchRegexp(`\s*Python version \(using pyproject.toml\): 3\.8\.\d+`),
+				MatchRegexp(`\s*Python version \(using pyproject.toml\): 3\.9\.\d+`),
 			))
 
 			container, err = docker.Container.Run.
