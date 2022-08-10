@@ -43,6 +43,9 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 
 			containersMap = map[string]interface{}{}
 			imagesMap = map[string]interface{}{}
+
+			source, err = occam.Source(filepath.Join("testdata", "default_app"))
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		it.After(func() {
@@ -58,9 +61,6 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 
 		it("builds and runs successfully with both provided dependency versions", func() {
 			var err error
-
-			source, err = occam.Source(filepath.Join("testdata", "default_app"))
-			Expect(err).NotTo(HaveOccurred())
 
 			firstPoetryVersion := buildpackInfo.Metadata.Dependencies[0].Version
 			secondPoetryVersion := buildpackInfo.Metadata.Dependencies[1].Version

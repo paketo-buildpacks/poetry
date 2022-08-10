@@ -24,13 +24,20 @@ func testLayerReuse(t *testing.T, context spec.G, it spec.S) {
 
 		imageIDs     map[string]struct{}
 		containerIDs map[string]struct{}
+
+		source string
 	)
 
 	it.Before(func() {
 		docker = occam.NewDocker()
 		pack = occam.NewPack()
+
 		imageIDs = map[string]struct{}{}
 		containerIDs = map[string]struct{}{}
+
+		var err error
+		source, err = occam.Source(filepath.Join("testdata", "default_app"))
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	it.After(func() {
@@ -41,12 +48,13 @@ func testLayerReuse(t *testing.T, context spec.G, it spec.S) {
 		for id := range imageIDs {
 			Expect(docker.Image.Remove.Execute(id)).To(Succeed())
 		}
+
+		Expect(os.RemoveAll(source)).To(Succeed())
 	})
 
 	context("when an app is rebuilt and does not change", func() {
 		var (
-			name   string
-			source string
+			name string
 		)
 
 		it.Before(func() {
@@ -54,13 +62,10 @@ func testLayerReuse(t *testing.T, context spec.G, it spec.S) {
 			name, err = occam.RandomName()
 			Expect(err).NotTo(HaveOccurred())
 
-			source, err = occam.Source(filepath.Join("testdata", "default_app"))
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		it.After(func() {
 			Expect(docker.Volume.Remove.Execute(occam.CacheVolumeNames(name))).To(Succeed())
-			Expect(os.RemoveAll(source)).To(Succeed())
 		})
 
 		it("reuses a layer from a previous build", func() {
