@@ -2,7 +2,7 @@ api = "0.7"
 
 [buildpack]
   id = "paketo-buildpacks/poetry"
-  name = "Paketo Poetry Buildpack"
+  name = "Paketo Buildpack for Poetry"
   sbom-formats = ["application/vnd.cyclonedx+json", "application/spdx+json", "application/vnd.syft+json"]
 
   [[buildpack.licenses]]

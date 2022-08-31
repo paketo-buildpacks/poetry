@@ -1,7 +1,7 @@
 # Poetry Cloud Native Buildpack
 ## `gcr.io/paketo-buildpacks/poetry`
 
-The Paketo Poetry Buildpack is a Cloud Native Buildpack that installs [Poetry](https://python-poetry.org/) into a
+The Paketo Buildpack for Poetry is a Cloud Native Buildpack that installs [Poetry](https://python-poetry.org/) into a
 layer and places it on the `PATH`.
 
 The buildpack is published for consumption at `gcr.io/paketo-buildpacks/poetry` and
