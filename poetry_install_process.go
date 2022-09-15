@@ -32,7 +32,7 @@ func (p PoetryInstallProcess) Execute(version, targetLayerPath string) error {
 	buffer := bytes.NewBuffer(nil)
 
 	err := p.executable.Execute(pexec.Execution{
-		Args: []string{"install", fmt.Sprintf("poetry==%s", version), "--user"},
+		Args: []string{"-m", "pip", "install", fmt.Sprintf("poetry==%s", version), "--user"},
 		// Set the PYTHONUSERBASE to ensure that pip is installed to the newly created target layer.
 		Env:    append(os.Environ(), fmt.Sprintf("PYTHONUSERBASE=%s", targetLayerPath)),
 		Stdout: buffer,

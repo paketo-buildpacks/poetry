@@ -44,7 +44,7 @@ func testPoetryInstallProcess(t *testing.T, context spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(executable.ExecuteCall.Receives.Execution.Env).To(Equal(append(os.Environ(), fmt.Sprintf("PYTHONUSERBASE=%s", destLayerPath))))
-				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{"install", "poetry==1.2.3-some.version", "--user"}))
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{"-m", "pip", "install", "poetry==1.2.3-some.version", "--user"}))
 			})
 		})
 

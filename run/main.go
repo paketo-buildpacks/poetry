@@ -26,7 +26,7 @@ func main() {
 		poetry.Detect(poetry.NewPyProjectParser()),
 		poetry.Build(
 			postal.NewService(cargo.NewTransport()),
-			poetry.NewPoetryInstallProcess(pexec.NewExecutable("pip")),
+			poetry.NewPoetryInstallProcess(pexec.NewExecutable("python")),
 			poetry.NewSiteProcess(pexec.NewExecutable("python")),
 			Generator{},
 			chronos.DefaultClock,
