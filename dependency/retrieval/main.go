@@ -1,18 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/joshuatcasey/libdependency/retrieve"
+	"github.com/joshuatcasey/libdependency/upstream"
 	"github.com/joshuatcasey/libdependency/versionology"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
-	"github.com/paketo-buildpacks/packit/v2/vacation"
 )
 
 type PyPiProductMetadataRaw struct {
@@ -36,25 +33,11 @@ func (release PoetryRelease) Version() *semver.Version {
 }
 
 func getAllVersions() (versionology.VersionFetcherArray, error) {
-	response, err := http.DefaultClient.Get("https://pypi.org/pypi/poetry/json")
-	if err != nil {
-		return nil, fmt.Errorf("could not get project metadata: %w", err)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("could not read response: %w", err)
-	}
 
 	var poetryMetadata PyPiProductMetadataRaw
-	err = json.Unmarshal(body, &poetryMetadata)
+	err := upstream.GetAndUnmarshal("https://pypi.org/pypi/poetry/json", &poetryMetadata)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal project metadata: %w", err)
+		return nil, fmt.Errorf("could not retrieve new versions from upstream: %w", err)
 	}
 
 	var allVersions versionology.VersionFetcherArray
@@ -100,7 +83,7 @@ func generateMetadata(versionFetcher versionology.VersionFetcher) ([]versionolog
 		CPE:            fmt.Sprintf("cpe:2.3:a:python-poetry:poetry:%s:*:*:*:*:python:*:*", version),
 		Checksum:       fmt.Sprintf("sha256:%s", poetryRelease.SourceSHA256),
 		ID:             "poetry",
-		Licenses:       retrieve.LookupLicenses(poetryRelease.SourceURL, defaultDecompress),
+		Licenses:       retrieve.LookupLicenses(poetryRelease.SourceURL, upstream.DefaultDecompress),
 		Name:           "Poetry",
 		PURL:           retrieve.GeneratePURL("poetry", version, poetryRelease.SourceSHA256, poetryRelease.SourceURL),
 		Source:         poetryRelease.SourceURL,
@@ -118,15 +101,4 @@ func generateMetadata(versionFetcher versionology.VersionFetcher) ([]versionolog
 
 func main() {
 	retrieve.NewMetadata("poetry", getAllVersions, generateMetadata)
-}
-
-func defaultDecompress(artifact io.Reader, destination string) error {
-	archive := vacation.NewArchive(artifact)
-
-	err := archive.StripComponents(1).Decompress(destination)
-	if err != nil {
-		return fmt.Errorf("failed to decompress source file: %w", err)
-	}
-
-	return nil
 }
