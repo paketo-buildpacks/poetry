@@ -223,21 +223,6 @@ jobs:
           name: "metadata.json"
           path: "metadata.json"
 
-  printout:
-    name: Print some data
-    needs:
-      - retrieve
-      - compile
-      - update-metadata
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Print data
-        run: |
-          echo "retrieve.result: ${{ needs.retrieve.result }}"
-          echo "compile.result: ${{ needs.compile.result }}"
-          echo "update-metadata.result: ${{ needs.update-metadata.result }}"
-
   assemble:
     name: Update buildpack.toml
     needs:
