@@ -230,6 +230,7 @@ jobs:
       - compile
       - update-metadata
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Print data
         run: |
