@@ -84,8 +84,8 @@ func Build(
 			launchMetadata = packit.LaunchMetadata{BOM: legacySBOM}
 		}
 
-		cachedSHA, ok := poetryLayer.Metadata[DependencySHAKey].(string)
-		if ok && cachedSHA == dependency.SHA256 {
+		cachedChecksum, ok := poetryLayer.Metadata[DependencyChecksumKey].(string)
+		if ok && cachedChecksum == dependency.Checksum {
 			logger.Process("Reusing cached layer %s", poetryLayer.Path)
 			logger.Break()
 
@@ -156,7 +156,7 @@ func Build(
 		logger.EnvironmentVariables(poetryLayer)
 
 		poetryLayer.Metadata = map[string]interface{}{
-			DependencySHAKey: dependency.SHA256,
+			DependencyChecksumKey: dependency.Checksum,
 		}
 
 		return packit.BuildResult{

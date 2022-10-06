@@ -51,12 +51,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		// Legacy SBOM
 		dependencyManager = &fakes.DependencyManager{}
 		dependencyManager.ResolveCall.Returns.Dependency = postal.Dependency{
-			ID:      "poetry",
-			Name:    "poetry-dependency-name",
-			SHA256:  "poetry-dependency-sha",
-			Stacks:  []string{"some-stack"},
-			URI:     "poetry-dependency-uri",
-			Version: "poetry-dependency-version",
+			ID:       "poetry",
+			Name:     "poetry-dependency-name",
+			Checksum: "poetry-dependency-sha",
+			Stacks:   []string{"some-stack"},
+			URI:      "poetry-dependency-uri",
+			Version:  "poetry-dependency-version",
 		}
 
 		dependencyManager.GenerateBillOfMaterialsCall.Returns.BOMEntrySlice = []packit.BOMEntry{
@@ -139,7 +139,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(layer.Cache).To(BeFalse())
 
 		Expect(layer.Metadata).To(HaveLen(1))
-		Expect(layer.Metadata["dependency-sha"]).To(Equal("poetry-dependency-sha"))
+		Expect(layer.Metadata["dependency-checksum"]).To(Equal("poetry-dependency-sha"))
 
 		Expect(layer.SBOM.Formats()).To(Equal([]packit.SBOMFormat{
 			{
@@ -160,12 +160,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(dependencyManager.GenerateBillOfMaterialsCall.CallCount).To(Equal(1))
 		Expect(dependencyManager.GenerateBillOfMaterialsCall.Receives.Dependencies).To(Equal([]postal.Dependency{
 			{
-				ID:      "poetry",
-				Name:    "poetry-dependency-name",
-				SHA256:  "poetry-dependency-sha",
-				Stacks:  []string{"some-stack"},
-				URI:     "poetry-dependency-uri",
-				Version: "poetry-dependency-version",
+				ID:       "poetry",
+				Name:     "poetry-dependency-name",
+				Checksum: "poetry-dependency-sha",
+				Stacks:   []string{"some-stack"},
+				URI:      "poetry-dependency-uri",
+				Version:  "poetry-dependency-version",
 			},
 		}))
 
