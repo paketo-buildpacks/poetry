@@ -59,7 +59,7 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 			Expect(os.RemoveAll(source)).To(Succeed())
 		})
 
-		it("builds and runs successfully with both provided dependency versions", func() {
+		it("builds and runs successfully with multiple provided dependency versions", func() {
 			var err error
 
 			firstPoetryVersion := buildpackInfo.Metadata.Dependencies[0].Version
@@ -96,7 +96,7 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 				cLogs, err := docker.Container.Logs.Execute(firstContainer.ID)
 				Expect(err).NotTo(HaveOccurred())
 				return cLogs.String()
-			}).Should(ContainSubstring(fmt.Sprintf(`Poetry version %s`, firstPoetryVersion)))
+			}).Should(MatchRegexp(fmt.Sprintf(`Poetry.*version %s`, firstPoetryVersion)))
 
 			secondImage, secondLogs, err := pack.WithNoColor().Build.
 				WithPullPolicy("never").
@@ -127,7 +127,7 @@ func testVersions(t *testing.T, context spec.G, it spec.S) {
 				cLogs, err := docker.Container.Logs.Execute(secondContainer.ID)
 				Expect(err).NotTo(HaveOccurred())
 				return cLogs.String()
-			}).Should(ContainSubstring(fmt.Sprintf(`Poetry version %s`, secondPoetryVersion)))
+			}).Should(MatchRegexp(fmt.Sprintf(`Poetry.*version %s`, secondPoetryVersion)))
 		})
 	})
 }

@@ -93,7 +93,7 @@ func testLayerReuse(t *testing.T, context spec.G, it spec.S) {
 				cLogs, err := docker.Container.Logs.Execute(firstContainer.ID)
 				Expect(err).NotTo(HaveOccurred())
 				return cLogs.String()
-			}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
+			}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
 
 			secondImage, logs, err := pack.WithNoColor().Build.
 				WithPullPolicy("never").
@@ -123,7 +123,7 @@ func testLayerReuse(t *testing.T, context spec.G, it spec.S) {
 				cLogs, err := docker.Container.Logs.Execute(secondContainer.ID)
 				Expect(err).NotTo(HaveOccurred())
 				return cLogs.String()
-			}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
+			}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
 
 			Expect(secondImage.Buildpacks[0].Layers["poetry"].SHA).To(Equal(firstImage.Buildpacks[0].Layers["poetry"].SHA))
 		})

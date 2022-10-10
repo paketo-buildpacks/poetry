@@ -110,7 +110,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				cLogs, err := docker.Container.Logs.Execute(container.ID)
 				Expect(err).NotTo(HaveOccurred())
 				return cLogs.String()
-			}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
+			}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
 		})
 
 		context("validating SBOM", func() {
@@ -159,7 +159,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 					cLogs, err := docker.Container.Logs.Execute(container.ID)
 					Expect(err).NotTo(HaveOccurred())
 					return cLogs.String()
-				}).Should(MatchRegexp(`Poetry version \d+\.\d+\.\d+`))
+				}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
 
 				Expect(logs).To(ContainLines(
 					fmt.Sprintf("  Generating SBOM for /layers/%s/poetry", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
