@@ -28,7 +28,7 @@ require (
 	github.com/anchore/go-version v1.2.2-0.20200701162849-18adb9c92b9b // indirect
 	github.com/anchore/packageurl-go v0.1.1-0.20220428202044-a072fa3cb6d7 // indirect
 	github.com/anchore/stereoscope v0.0.0-20221006201143-d24c9d626b33 // indirect
-	github.com/anchore/syft v0.58.0 // indirect
+	github.com/anchore/syft v0.59.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.2.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
@@ -108,10 +108,10 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
-	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 // indirect
-	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/net v0.0.0-20221017152216-f25eb7ecb193 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto v0.0.0-20221014213838-99cd37c6964a // indirect
