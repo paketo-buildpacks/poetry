@@ -66,12 +66,12 @@ api = "0.7"
     version = "1.6.1"
 
   [[metadata.dependency-constraints]]
-    constraint = "1.5.*"
+    constraint = "1.6.*"
     id = "poetry"
     patches = 2
 
   [[metadata.dependency-constraints]]
-    constraint = "1.6.*"
+    constraint = "1.7.*"
     id = "poetry"
     patches = 2
 
