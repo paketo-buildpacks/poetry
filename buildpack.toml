@@ -77,11 +77,3 @@ api = "0.7"
 
 [[stacks]]
   id = "*"
-
-[[targets.distros]]
-name = "ubuntu"
-version = "18.04"
-
-[[targets.distros]]
-name = "ubuntu"
-version = "22.04"
