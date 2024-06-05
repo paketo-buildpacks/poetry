@@ -14,32 +14,6 @@ api = "0.7"
   pre-package = "./scripts/build.sh"
 
   [[metadata.dependencies]]
-    checksum = "sha256:77324092ab3b3f975a87a2893a53152cbac7853c8359204b828f0d96f078e4c7"
-    cpe = "cpe:2.3:a:python-poetry:poetry:1.6.0:*:*:*:*:python:*:*"
-    id = "poetry"
-    licenses = ["MIT"]
-    name = "Poetry"
-    purl = "pkg:generic/poetry@1.6.0?checksum=77324092ab3b3f975a87a2893a53152cbac7853c8359204b828f0d96f078e4c7&download_url=https://files.pythonhosted.org/packages/b8/49/7d3d8f79356ded464ece366d9b77cc69fed3647debe358619c1c2f307734/poetry-1.6.0.tar.gz"
-    source = "https://files.pythonhosted.org/packages/b8/49/7d3d8f79356ded464ece366d9b77cc69fed3647debe358619c1c2f307734/poetry-1.6.0.tar.gz"
-    source-checksum = "sha256:77324092ab3b3f975a87a2893a53152cbac7853c8359204b828f0d96f078e4c7"
-    stacks = ["*"]
-    uri = "https://files.pythonhosted.org/packages/b8/49/7d3d8f79356ded464ece366d9b77cc69fed3647debe358619c1c2f307734/poetry-1.6.0.tar.gz"
-    version = "1.6.0"
-
-  [[metadata.dependencies]]
-    checksum = "sha256:0ab9b1a592731cc8b252b8d6aaeea19c72cc0a109d7468b829ad57e6c48039d2"
-    cpe = "cpe:2.3:a:python-poetry:poetry:1.6.1:*:*:*:*:python:*:*"
-    id = "poetry"
-    licenses = ["MIT"]
-    name = "Poetry"
-    purl = "pkg:generic/poetry@1.6.1?checksum=0ab9b1a592731cc8b252b8d6aaeea19c72cc0a109d7468b829ad57e6c48039d2&download_url=https://files.pythonhosted.org/packages/c6/5f/f60c900299e05736900a732f079a306b762d1343e47d965862d140b6e550/poetry-1.6.1.tar.gz"
-    source = "https://files.pythonhosted.org/packages/c6/5f/f60c900299e05736900a732f079a306b762d1343e47d965862d140b6e550/poetry-1.6.1.tar.gz"
-    source-checksum = "sha256:0ab9b1a592731cc8b252b8d6aaeea19c72cc0a109d7468b829ad57e6c48039d2"
-    stacks = ["*"]
-    uri = "https://files.pythonhosted.org/packages/c6/5f/f60c900299e05736900a732f079a306b762d1343e47d965862d140b6e550/poetry-1.6.1.tar.gz"
-    version = "1.6.1"
-
-  [[metadata.dependencies]]
     checksum = "sha256:796e2866f35cb57af36280a890f5a5b3f9ef1a2dcf780b945b02be2e82895391"
     cpe = "cpe:2.3:a:python-poetry:poetry:1.7.0:*:*:*:*:python:*:*"
     id = "poetry"
@@ -65,13 +39,39 @@ api = "0.7"
     uri = "https://files.pythonhosted.org/packages/bb/cf/cfdd5ab997bdb51a29c5f1d1925c409c58d5e504062c105dc0d82ec9e7c5/poetry-1.7.1.tar.gz"
     version = "1.7.1"
 
+  [[metadata.dependencies]]
+    checksum = "sha256:49cceb3838104647c3e1021f3a4f13c6053704cc18d33f849a90fe687a29cb73"
+    cpe = "cpe:2.3:a:python-poetry:poetry:1.8.2:*:*:*:*:python:*:*"
+    id = "poetry"
+    licenses = ["MIT"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@1.8.2?checksum=49cceb3838104647c3e1021f3a4f13c6053704cc18d33f849a90fe687a29cb73&download_url=https://files.pythonhosted.org/packages/49/a7/f5fbce21ed8e5871c229864e9c2b588897e1aeb9431f024636252069245b/poetry-1.8.2.tar.gz"
+    source = "https://files.pythonhosted.org/packages/49/a7/f5fbce21ed8e5871c229864e9c2b588897e1aeb9431f024636252069245b/poetry-1.8.2.tar.gz"
+    source-checksum = "sha256:49cceb3838104647c3e1021f3a4f13c6053704cc18d33f849a90fe687a29cb73"
+    stacks = ["*"]
+    uri = "https://files.pythonhosted.org/packages/49/a7/f5fbce21ed8e5871c229864e9c2b588897e1aeb9431f024636252069245b/poetry-1.8.2.tar.gz"
+    version = "1.8.2"
+
+  [[metadata.dependencies]]
+    checksum = "sha256:67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48"
+    cpe = "cpe:2.3:a:python-poetry:poetry:1.8.3:*:*:*:*:python:*:*"
+    id = "poetry"
+    licenses = ["MIT"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@1.8.3?checksum=67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48&download_url=https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
+    source = "https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
+    source-checksum = "sha256:67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48"
+    stacks = ["*"]
+    uri = "https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
+    version = "1.8.3"
+
   [[metadata.dependency-constraints]]
-    constraint = "1.6.*"
+    constraint = "1.7.*"
     id = "poetry"
     patches = 2
 
   [[metadata.dependency-constraints]]
-    constraint = "1.7.*"
+    constraint = "1.8.*"
     id = "poetry"
     patches = 2
 
