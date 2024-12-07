@@ -40,19 +40,6 @@ api = "0.7"
     version = "1.7.1"
 
   [[metadata.dependencies]]
-    checksum = "sha256:67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48"
-    cpe = "cpe:2.3:a:python-poetry:poetry:1.8.3:*:*:*:*:python:*:*"
-    id = "poetry"
-    licenses = ["MIT"]
-    name = "Poetry"
-    purl = "pkg:generic/poetry@1.8.3?checksum=67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48&download_url=https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
-    source = "https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
-    source-checksum = "sha256:67f4eb68288eab41e841cc71a00d26cf6bdda9533022d0189a145a34d0a35f48"
-    stacks = ["*"]
-    uri = "https://files.pythonhosted.org/packages/07/c7/41108195c39ac1010054ef6b3b445894cee79e8ec73f086b73da94a01901/poetry-1.8.3.tar.gz"
-    version = "1.8.3"
-
-  [[metadata.dependencies]]
     checksum = "sha256:5490f8da66d17eecd660e091281f8aaa5554381644540291817c249872c99202"
     cpe = "cpe:2.3:a:python-poetry:poetry:1.8.4:*:*:*:*:python:*:*"
     id = "poetry"
@@ -64,6 +51,19 @@ api = "0.7"
     stacks = ["*"]
     uri = "https://files.pythonhosted.org/packages/29/84/dbf6db6ecf3cbb2926c05a0b831bb03559c15b700d9836c8afc9022bcedb/poetry-1.8.4.tar.gz"
     version = "1.8.4"
+
+  [[metadata.dependencies]]
+    checksum = "sha256:eb2c88d224f58f36df8f7b36d6c380c07d1001bca28bde620f68fc086e881b70"
+    cpe = "cpe:2.3:a:python-poetry:poetry:1.8.5:*:*:*:*:python:*:*"
+    id = "poetry"
+    licenses = ["MIT"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@1.8.5?checksum=eb2c88d224f58f36df8f7b36d6c380c07d1001bca28bde620f68fc086e881b70&download_url=https://files.pythonhosted.org/packages/08/92/42ed153d5590484fc39a76003262d8e0f102ed8ce5d86c803b23b8d5cc9d/poetry-1.8.5.tar.gz"
+    source = "https://files.pythonhosted.org/packages/08/92/42ed153d5590484fc39a76003262d8e0f102ed8ce5d86c803b23b8d5cc9d/poetry-1.8.5.tar.gz"
+    source-checksum = "sha256:eb2c88d224f58f36df8f7b36d6c380c07d1001bca28bde620f68fc086e881b70"
+    stacks = ["*"]
+    uri = "https://files.pythonhosted.org/packages/08/92/42ed153d5590484fc39a76003262d8e0f102ed8ce5d86c803b23b8d5cc9d/poetry-1.8.5.tar.gz"
+    version = "1.8.5"
 
   [[metadata.dependency-constraints]]
     constraint = "1.7.*"
