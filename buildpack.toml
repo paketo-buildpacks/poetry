@@ -10,8 +10,17 @@ api = "0.7"
     uri = "https://github.com/paketo-buildpacks/poetry/blob/main/LICENSE"
 
 [metadata]
-  include-files = ["bin/run", "bin/build", "bin/detect", "buildpack.toml"]
-  pre-package = "./scripts/build.sh"
+  include-files = [
+    "buildpack.toml",
+    "linux/amd64/bin/build",
+    "linux/amd64/bin/detect",
+    "linux/amd64/bin/run",
+    "linux/arm64/bin/build",
+    "linux/arm64/bin/detect",
+    "linux/arm64/bin/run",
+  ]
+
+  pre-package = "./scripts/build.sh --target linux/amd64 --target linux/arm64"
 
   [[metadata.dependencies]]
     checksum = "sha256:796e2866f35cb57af36280a890f5a5b3f9ef1a2dcf780b945b02be2e82895391"
@@ -173,3 +182,11 @@ api = "0.7"
 
 [[stacks]]
   id = "*"
+
+[[targets]]
+  arch = "amd64"
+  os = "linux"
+
+[[targets]]
+  arch = "arm64"
+  os = "linux"

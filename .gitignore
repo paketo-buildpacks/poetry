@@ -1,6 +1,8 @@
 .DS_Store
-.idea
+!integration/testdata
 .bin
-pip-cnb.tgz
-pip-cnb_*
-/build
+build
+.idea/
+linux
+darwin
+windows
