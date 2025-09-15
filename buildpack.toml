@@ -180,6 +180,16 @@ api = "0.7"
     id = "poetry"
     patches = 2
 
+  [[metadata.dependency-constraints]]
+    constraint = "2.1.*"
+    id = "poetry"
+    patches = 2
+
+  [[metadata.dependency-constraints]]
+    constraint = "2.2.*"
+    id = "poetry"
+    patches = 2
+
 [[stacks]]
   id = "*"
 
