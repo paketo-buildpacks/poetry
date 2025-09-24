@@ -12,6 +12,9 @@ type PyProjectToml struct {
 			}
 		}
 	}
+	Project struct {
+		RequiresPython string `toml:"requires-python"`
+	}
 }
 
 type PyProjectParser struct {
@@ -29,5 +32,8 @@ func (p PyProjectParser) ParsePythonVersion(pyProjectToml string) (string, error
 		return "", err
 	}
 
+	if pyProject.Project.RequiresPython != "" {
+		return pyProject.Project.RequiresPython, nil
+	}
 	return pyProject.Tool.Poetry.Dependencies.Python, nil
 }

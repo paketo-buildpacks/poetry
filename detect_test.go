@@ -141,7 +141,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 				_, err := detect(packit.DetectContext{
 					WorkingDir: workingDir,
 				})
-				Expect(err).To(MatchError(packit.Fail.WithMessage("pyproject.toml must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies")))
+				Expect(err).To(MatchError(packit.Fail.WithMessage("pyproject.toml must include [project.requires-python] or [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#requires-python")))
 			})
 		})
 
