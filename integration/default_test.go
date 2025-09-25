@@ -113,6 +113,69 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
 		})
 
+		it("builds with the poetry v1 pyproject.toml", func() {
+			var err error
+			var logs fmt.Stringer
+
+			source, err = occam.Source(filepath.Join("testdata", "poetry_v1"))
+			Expect(err).NotTo(HaveOccurred())
+
+			image, logs, err = pack.WithNoColor().Build.
+				WithPullPolicy("never").
+				WithBuildpacks(
+					settings.Buildpacks.CPython.Online,
+					settings.Buildpacks.Pip.Online,
+					settings.Buildpacks.Poetry.Online,
+					settings.Buildpacks.BuildPlan.Online,
+				).
+				Execute(name, source)
+			Expect(err).ToNot(HaveOccurred(), logs.String)
+
+			Expect(logs).To(ContainLines(
+				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
+				"  Resolving Poetry version",
+				"    Candidate version sources (in priority order):",
+				`      <unknown> -> ""`,
+			))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`    Selected Poetry version \(using <unknown>\): \d+\.\d+\.\d+`),
+			))
+			Expect(logs).To(ContainLines(
+				"  Executing build process",
+				MatchRegexp(`    Installing Poetry \d+\.\d+\.\d+`),
+				MatchRegexp(`      Completed in \d+\.\d+`),
+			))
+			Expect(logs).To(ContainLines(
+				"  Configuring build environment",
+				MatchRegexp(fmt.Sprintf(`    PYTHONPATH -> "\/layers\/%s\/poetry\/lib\/python\d+\.\d+\/site-packages:\$PYTHONPATH"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"))),
+				"",
+				"  Configuring launch environment",
+				MatchRegexp(fmt.Sprintf(`    PYTHONPATH -> "\/layers\/%s\/poetry\/lib\/python\d+\.\d+\/site-packages:\$PYTHONPATH"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"))),
+			))
+
+			Expect(logs).To(ContainLines(
+				"  Resolving CPython version",
+				"    Candidate version sources (in priority order):",
+				`      pyproject.toml -> "3.12.*"`,
+				`                     -> ""`,
+				`      <unknown>      -> ""`,
+			))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(`\s*Python version \(using pyproject.toml\): 3\.12\.\d+`),
+			))
+
+			container, err = docker.Container.Run.
+				WithCommand("poetry --version").
+				Execute(image.ID)
+			Expect(err).ToNot(HaveOccurred())
+
+			Eventually(func() string {
+				cLogs, err := docker.Container.Logs.Execute(container.ID)
+				Expect(err).NotTo(HaveOccurred())
+				return cLogs.String()
+			}).Should(MatchRegexp(`Poetry.*version \d+\.\d+\.\d+`))
+		})
+
 		context("validating SBOM", func() {
 			var (
 				container2 occam.Container

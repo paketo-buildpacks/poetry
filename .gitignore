@@ -1,7 +1,7 @@
 .DS_Store
 !integration/testdata
 .bin
-/bin
+bin
 build
 .idea/
 linux
