@@ -39,7 +39,7 @@ func Detect(parser PyProjectPythonVersionParser) packit.DetectFunc {
 		}
 
 		if pythonVersion == "" {
-			return packit.DetectResult{}, packit.Fail.WithMessage("%s must include [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies", PyProjectTomlFile)
+			return packit.DetectResult{}, packit.Fail.WithMessage("%s must include [project.requires-python] or [tool.poetry.dependencies.python], see https://python-poetry.org/docs/pyproject/#requires-python", PyProjectTomlFile)
 		}
 
 		requirements := []packit.BuildPlanRequirement{
