@@ -1,6 +1,7 @@
 package poetry
 
 import (
+	"strings"
 	"github.com/BurntSushi/toml"
 )
 
@@ -33,7 +34,7 @@ func (p PyProjectParser) ParsePythonVersion(pyProjectToml string) (string, error
 	}
 
 	if pyProject.Project.RequiresPython != "" {
-		return pyProject.Project.RequiresPython, nil
+		return strings.Trim(pyProject.Project.RequiresPython, "="), nil
 	}
-	return pyProject.Tool.Poetry.Dependencies.Python, nil
+	return strings.Trim(pyProject.Tool.Poetry.Dependencies.Python, "="), nil
 }

@@ -22,9 +22,11 @@ func testPyProjectParser(t *testing.T, context spec.G, it spec.S) {
 
 	const (
 		version = `[tool.poetry.dependencies]
-python = "===1.2.3"`
+python = "1.2.3"`
 		version_pep621 = `[project]
 requires-python = ">=1.2.3"`
+		exact_version_pep621 = `[project]
+requires-python = "==1.2.3"`
 	)
 
 	it.Before(func() {
@@ -47,7 +49,7 @@ requires-python = ">=1.2.3"`
 
 			version, err := parser.ParsePythonVersion(pyProjectToml)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(version).To(Equal("===1.2.3"))
+			Expect(version).To(Equal("1.2.3"))
 		})
 
 		it("parses version PEP621", func() {
@@ -56,6 +58,14 @@ requires-python = ">=1.2.3"`
 			version, err := parser.ParsePythonVersion(pyProjectToml)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal(">=1.2.3"))
+		})
+
+		it("parses exact version PEP621", func() {
+			Expect(os.WriteFile(pyProjectToml, []byte(exact_version_pep621), 0644)).To(Succeed())
+
+			version, err := parser.ParsePythonVersion(pyProjectToml)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(version).To(Equal("1.2.3"))
 		})
 
 		it("returns empty string if file does not contain 'tool.poetry.dependencies.python' or project.requires-python", func() {
