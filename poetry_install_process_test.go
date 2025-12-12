@@ -52,8 +52,8 @@ func testPoetryInstallProcess(t *testing.T, context spec.G, it spec.S) {
 			context("the install process fails", func() {
 				it.Before(func() {
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, "stdout output")
-						fmt.Fprintln(execution.Stderr, "stderr output")
+						_, _ = fmt.Fprintln(execution.Stdout, "stdout output")
+						_, _ = fmt.Fprintln(execution.Stderr, "stderr output")
 						return errors.New("installing poetry failed")
 					}
 				})

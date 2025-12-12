@@ -33,7 +33,7 @@ func testSiteProcess(t *testing.T, context spec.G, it spec.S) {
 		executable = &fakes.Executable{}
 		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 			if execution.Stdout != nil {
-				fmt.Fprint(execution.Stdout, targetLayerPath, "/poetry/lib/python/site-packages")
+				_, _ = fmt.Fprint(execution.Stdout, targetLayerPath, "/poetry/lib/python/site-packages")
 			}
 			return nil
 		}
@@ -62,8 +62,8 @@ func testSiteProcess(t *testing.T, context spec.G, it spec.S) {
 			context("site package lookup fails", func() {
 				it.Before(func() {
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, "stdout output")
-						fmt.Fprintln(execution.Stderr, "stderr output")
+						_, _ = fmt.Fprintln(execution.Stdout, "stdout output")
+						_, _ = fmt.Fprintln(execution.Stderr, "stderr output")
 						return errors.New("locating site packages failed")
 					}
 				})
