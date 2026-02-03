@@ -168,6 +168,11 @@ api = "0.7"
     id = "poetry"
     patches = 2
 
+  [[metadata.dependency-constraints]]
+    constraint = "2.3.*"
+    id = "poetry"
+    patches = 2
+
 [[stacks]]
   id = "*"
 
