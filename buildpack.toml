@@ -143,6 +143,32 @@ api = "0.7"
     uri = "https://files.pythonhosted.org/packages/19/28/f790e21769afaaa1f326d9634f9a5c700c4cdb4c468a1707c6db0b350505/poetry-2.2.1.tar.gz"
     version = "2.2.1"
 
+  [[metadata.dependencies]]
+    checksum = "sha256:423cbccfe3533155ce9f49e929780a1386e564b2d97d2380664ea388cfe1191c"
+    cpe = "cpe:2.3:a:python-poetry:poetry:2.3.1:*:*:*:*:python:*:*"
+    id = "poetry"
+    licenses = ["MIT"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@2.3.1?checksum=423cbccfe3533155ce9f49e929780a1386e564b2d97d2380664ea388cfe1191c&download_url=https://files.pythonhosted.org/packages/f0/c1/1cafdad3dae01aa5693339809847d89cd1379d1dff0329da7d791a2db5c4/poetry-2.3.1.tar.gz"
+    source = "https://files.pythonhosted.org/packages/f0/c1/1cafdad3dae01aa5693339809847d89cd1379d1dff0329da7d791a2db5c4/poetry-2.3.1.tar.gz"
+    source-checksum = "sha256:423cbccfe3533155ce9f49e929780a1386e564b2d97d2380664ea388cfe1191c"
+    stacks = ["*"]
+    uri = "https://files.pythonhosted.org/packages/f0/c1/1cafdad3dae01aa5693339809847d89cd1379d1dff0329da7d791a2db5c4/poetry-2.3.1.tar.gz"
+    version = "2.3.1"
+
+  [[metadata.dependencies]]
+    checksum = "sha256:6e81526ae99a4f07f75174600bfe8b73e74c786dc18c9d1ce1800dd6f807414b"
+    cpe = "cpe:2.3:a:python-poetry:poetry:2.3.2:*:*:*:*:python:*:*"
+    id = "poetry"
+    licenses = ["MIT"]
+    name = "Poetry"
+    purl = "pkg:generic/poetry@2.3.2?checksum=6e81526ae99a4f07f75174600bfe8b73e74c786dc18c9d1ce1800dd6f807414b&download_url=https://files.pythonhosted.org/packages/7d/b7/4c242ff85f6263f411060336ef7370e444b1718de1122d0c145e92170b01/poetry-2.3.2.tar.gz"
+    source = "https://files.pythonhosted.org/packages/7d/b7/4c242ff85f6263f411060336ef7370e444b1718de1122d0c145e92170b01/poetry-2.3.2.tar.gz"
+    source-checksum = "sha256:6e81526ae99a4f07f75174600bfe8b73e74c786dc18c9d1ce1800dd6f807414b"
+    stacks = ["*"]
+    uri = "https://files.pythonhosted.org/packages/7d/b7/4c242ff85f6263f411060336ef7370e444b1718de1122d0c145e92170b01/poetry-2.3.2.tar.gz"
+    version = "2.3.2"
+
   [[metadata.dependency-constraints]]
     constraint = "1.7.*"
     id = "poetry"
